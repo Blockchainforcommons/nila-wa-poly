@@ -1,0 +1,14 @@
+# dependencies
+package-lock.json
+node_modules
+
+# dotenv environment variables file
+.env
+
+# server files
+circuits
+dist
+src/issuer/circuits
+
+# build
+dist

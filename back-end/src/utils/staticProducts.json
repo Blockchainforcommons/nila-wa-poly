@@ -1,0 +1,42 @@
+[
+  {
+    "cropType": "Paddy",
+    "cropVariety": "ponni",
+    "location": "chennai",
+    "quantity": "10",
+    "packagingStatus": "",
+    "harvestDate": "",
+    "entryDate": "",
+    "picture": ""
+  },
+  {
+    "cropType": "sugarcane",
+    "cropVariety": "black",
+    "location": "coimbatore",
+    "quantity": "15",
+    "packagingStatus": "",
+    "harvestDate": "",
+    "entryDate": "",
+    "picture": ""
+  },
+  {
+    "cropType": "millets",
+    "cropVariety": "thinai",
+    "location": "tiruppur",
+    "quantity": "20",
+    "packagingStatus": "",
+    "harvestDate": "",
+    "entryDate": "",
+    "picture": ""
+  },
+  {
+    "cropType": "wheet",
+    "cropVariety": "brown",
+    "location": "nellai",
+    "quantity": "30",
+    "packagingStatus": "",
+    "harvestDate": "",
+    "entryDate": "",
+    "picture": ""
+  }
+]

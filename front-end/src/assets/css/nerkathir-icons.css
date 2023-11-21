@@ -1,0 +1,250 @@
+/* Icons using class names */
+.nerkathir-icon-account:before {
+    content: "\61";
+}
+
+.nerkathir-icon-add:before {
+    content: "\62";
+}
+
+.nerkathir-icon-back:before {
+    content: "\63";
+}
+
+.nerkathir-icon-calendar:before {
+    content: "\64";
+}
+
+.nerkathir-icon-close:before {
+    content: "\65";
+}
+
+.nerkathir-icon-delete:before {
+    content: "\66";
+}
+
+.nerkathir-icon-download:before {
+    content: "\67";
+}
+
+.nerkathir-icon-drop-down:before {
+    content: "\68";
+}
+
+.nerkathir-icon-edit:before {
+    content: "\69";
+}
+
+.nerkathir-icon-expand-right:before {
+    content: "\6a";
+}
+
+.nerkathir-icon-filter:before {
+    content: "\6b";
+}
+
+.nerkathir-icon-ham-burger:before {
+    content: "\6c";
+}
+
+.nerkathir-icon-id-card-download:before {
+    content: "\6d";
+}
+
+.nerkathir-icon-lock:before {
+    content: "\6e";
+}
+
+.nerkathir-icon-logout:before {
+    content: "\6f";
+}
+
+.nerkathir-icon-notification:before {
+    content: "\70";
+}
+
+.nerkathir-icon-phone:before {
+    content: "\71";
+}
+
+.nerkathir-icon-profile:before {
+    content: "\72";
+}
+
+.nerkathir-icon-search:before {
+    content: "\73";
+}
+
+.nerkathir-icon-settings:before {
+    content: "\74";
+}
+
+.nerkathir-icon-show:before {
+    content: "\75";
+}
+
+.nerkathir-icon-sort:before {
+    content: "\76";
+}
+
+.nerkathir-icon-three-dots:before {
+    content: "\77";
+}
+
+.nerkathir-icon-hide:before {
+    content: "\78";
+}
+
+.nerkathir-icon-bold:before {
+    content: "\2b";
+}
+
+.nerkathir-icon-bullets:before {
+    content: "\5f";
+}
+
+.nerkathir-icon-Clear-Format:before {
+    content: "\29";
+}
+
+.nerkathir-icon-code:before {
+    content: "\28";
+}
+
+.nerkathir-icon-code-block:before {
+    content: "\2a";
+}
+
+.nerkathir-icon-h1:before {
+    content: "\26";
+}
+
+.nerkathir-icon-h2:before {
+    content: "\5e";
+}
+
+.nerkathir-icon-h3:before {
+    content: "\25";
+}
+
+.nerkathir-icon-h4:before {
+    content: "\24";
+}
+
+.nerkathir-icon-h5:before {
+    content: "\23";
+}
+
+.nerkathir-icon-h6:before {
+    content: "\21";
+}
+
+.nerkathir-icon-highlight:before {
+    content: "\31";
+}
+
+.nerkathir-icon-italics:before {
+    content: "\33";
+}
+
+.nerkathir-icon-paragraph:before {
+    content: "\35";
+}
+
+.nerkathir-icon-quotes:before {
+    content: "\36";
+}
+
+.nerkathir-icon-redo:before {
+    content: "\37";
+}
+
+.nerkathir-icon-strikethrough:before {
+    content: "\38";
+}
+
+.nerkathir-icon-undo:before {
+    content: "\30";
+}
+
+.nerkathir-icon-block-quote:before {
+    content: "\32";
+}
+
+.nerkathir-icon-clear-format:before {
+    content: "\60";
+}
+
+.nerkathir-icon-hard-break:before {
+    content: "\5c";
+}
+
+.nerkathir-icon-high-light:before {
+    content: "\7c";
+}
+
+.nerkathir-icon-horizontal-rule:before {
+    content: "\27";
+}
+
+.nerkathir-icon-numbering:before {
+    content: "\22";
+}
+
+.nerkathir-icon-strike-through:before {
+    content: "\2e";
+}
+
+.nerkathir-icon-cultivation:before {
+    content: "\2264";
+    color: #686868;
+}
+
+.nerkathir-icon-farmer-count:before {
+    content: "\2265";
+    color: #686868;
+}
+
+.nerkathir-icon-farmland:before {
+    content: "\2266";
+    color: #686868;
+}
+
+.nerkathir-icon-female-farmer:before {
+    content: "\2267";
+    color: #686868;
+}
+
+.nerkathir-icon-groups:before {
+    content: "\2269";
+    color: #686868;
+}
+
+.nerkathir-icon-underline:before {
+    content: "\22b0";
+}
+
+.nerkathir-icon-male-farmer:before {
+    content: "\22b1";
+    color: #686868;
+}
+
+.nerkathir-icon-mark-all-as-read:before {
+  content: "\2600";
+}
+
+.nerkathir-icon-notification1:before {
+  content: "\2601";
+}
+
+.nerkathir-icon-rupee:before {
+  content: "\2603";
+}
+
+.nerkathir-icon-ascending:before {
+    content: "\bf";
+}
+
+.nerkathir-icon-descending:before {
+    content: "\a2";
+}

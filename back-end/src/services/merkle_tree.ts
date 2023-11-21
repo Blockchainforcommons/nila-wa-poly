@@ -1,0 +1,370 @@
+import { WarehouseTreeClient } from './WarehouseTreeClient';
+import algosdk from 'algosdk';
+const { createHash, randomBytes } = require('crypto');
+import dotenv from 'dotenv';
+dotenv.config();
+
+// function timer<T extends (...args: any[]) => any>(func: T): T {
+//     return function(...args: Parameters<T>): ReturnType<T> {
+//         const start_time = performance.now();
+//         const result = func(...args);
+//         const end_time = performance.now();
+//         console.log(`${func.name} ran in: ${end_time - start_time} ms`);
+//         return result;
+//     } as T;
+// }
+
+function oppositeSubtreeAtLevel(leaf1: number, leaf2: number, treeSize: number): boolean[] {
+  let results: boolean[] = [];
+  let level: number = 0;
+  let groupSize: number = 2;
+
+  while (groupSize <= treeSize) {
+    // Determine if the leaves are in the same group at this level
+    const sameGroup: boolean = Math.floor(leaf1 / groupSize) !== Math.floor(leaf2 / groupSize);
+    results.push(sameGroup);
+
+    // Prepare for the next level
+    level++;
+    groupSize *= 2;
+  }
+
+  results.reverse();
+  results = [false, ...results];
+
+  // Add a boolean for the top level, if leaf1 and leaf2 are equal
+  return results;
+}
+
+function sha256(data: string): string {
+  return createHash('sha256').update(data).digest('hex');
+}
+
+export function getMerklePath(index: number, merkleTree: any[][]): any[] {
+  let path: any[] = [];
+  // List Merkle tree by level, for each level, determine sibling
+  merkleTree.forEach((level, i) => {
+    // Shift index
+    if (i > 0) {
+      index = Math.floor(index / 2);
+    }
+    // Find sibling of index
+    const siblingIndex = index % 2 === 0 ? index + 1 : index - 1;
+    if (siblingIndex >= level.length) {
+      path.push(level[index]);
+    } else {
+      path.push(level[siblingIndex]);
+    }
+  });
+
+  return path;
+}
+
+export function getMerklePathV2(
+  index: number,
+  merkleTree: any[][],
+  targetHash: string,
+): { [targetHash: string]: string[] } {
+  let path: any[] = [];
+  // List Merkle tree by level, for each level, determine sibling
+  merkleTree.forEach((level, i) => {
+    // Shift index
+    if (i > 0) {
+      index = Math.floor(index / 2);
+    }
+    // Find sibling of index
+    const siblingIndex = index % 2 === 0 ? index + 1 : index - 1;
+    if (siblingIndex >= level.length) {
+      path.push(level[index]);
+    } else {
+      path.push(level[siblingIndex]);
+    }
+  });
+
+  return { [targetHash]: path };
+}
+
+export function genMerkleTree(leafs: string[]): [string, string[][]] {
+  let MT: string[][] = [leafs];
+
+  while (leafs.length !== 1) {
+    let branch: string[] = [];
+    let level: string[] = [];
+    for (let i = 0; i < leafs.length; i += 2) {
+      let hash: string;
+      if (i === leafs.length - 1) {
+        // Find the hash of an uneven pair
+        hash = createHash('sha256')
+          .update(leafs[i] + leafs[i])
+          .digest('hex');
+      } else {
+        // Find the hash of both siblings
+        hash = createHash('sha256')
+          .update(leafs[i] + leafs[i + 1])
+          .digest('hex');
+      }
+      level.push(hash);
+      branch.push(hash);
+    }
+    MT.push(level);
+    leafs = branch;
+  }
+  console.log('MT', MT);
+
+  return [leafs[0], MT.slice(0, -1)]; // Remove root from MT
+}
+
+function validatePath(path: string[], leaf: string, index: number): string {
+  let hash: string = leaf;
+  path.forEach((sibling, i) => {
+    if (i > 0) {
+      index = Math.floor(index / 2);
+    }
+    if (index % 2 === 0) {
+      hash = sha256(hash + sibling);
+    } else {
+      hash = sha256(sibling + hash);
+    }
+  });
+  return hash;
+}
+
+function updateTree(
+  path: string[],
+  newLeaf: string,
+  index: number,
+  size: number,
+): [string, [string, string, number][]] {
+  let hash: string = newLeaf;
+  let slot: number = index;
+  let newPath: [string, string, number][] = [];
+
+  path.forEach((sibling, i) => {
+    if (i > 0) {
+      index = Math.floor(index / 2);
+    }
+
+    newPath.push([hash, sibling, slot]);
+
+    if (index % 2 === 0) {
+      hash = sha256(hash + sibling);
+    } else {
+      hash = sha256(sibling + hash);
+    }
+
+    if (i < path.length - 1) {
+      slot = Math.floor(slot / 2);
+    }
+  });
+
+  return [hash, newPath];
+}
+
+export function updateMerkleTree(
+  root: string,
+  path: string[],
+  oldLeaf: string,
+  newLeaf: string,
+  index: number,
+  treeSize: number,
+): [string, [string, string, number][]] {
+  // Proof that we know the latest state root
+  if (root !== validatePath(path, oldLeaf, index)) {
+    throw new Error('Root validation failed');
+  }
+
+  // Log for validation - can be removed or adjusted as needed
+  if (index % 1000 === 0) {
+    console.log('ROOT VALIDATED', index);
+  }
+
+  // Calculate the new root with the known path
+  const [newRoot, sib] = updateTree(path, newLeaf, index, treeSize);
+  return [newRoot, sib];
+}
+
+export function updatePath(path: string[], sib: [string, string, number][]): string[] {
+  // Update paths from top to bottom (inverse path)
+  path = path.slice().reverse();
+  sib = sib.slice().reverse();
+
+  // Only update if sibling is equal, if not, break loop
+  for (let i = 0; i < path.length; i++) {
+    if (path[i] !== sib[i][1]) {
+      path[i] = sib[i][0];
+      break;
+    }
+  }
+
+  return path.reverse();
+}
+
+function updatePathBoxmap(
+  path: string[],
+  boxmap: [string, [string, string, number][]][],
+  root: string,
+  data: string[],
+  index: number,
+  size: number,
+): [string[], number] {
+  boxmap = boxmap.slice().reverse(); // Reverse list
+  path = path.slice().reverse();
+  let lvls = 0;
+  let it = 0;
+
+  while (true) {
+    let sib = boxmap[it][1].slice().reverse(); // Reverse the sib list (not boxmap as above)
+
+    for (let i = 0; i < path.length; i++) {
+      let subtree = oppositeSubtreeAtLevel(index, sib[i][2], size); // Subtree match between path and sib
+      let isSelf = path[path.length - 1] === sib[sib.length - 1][1];
+
+      if (!isSelf && !subtree[i] && i >= lvls) {
+        if (i + 1 < path.length && !subtree[i + 1]) {
+          path[i] = sib[i][1]; // Next is also false so use sibling
+        } else {
+          path[i] = sib[i][0]; // Next isn't in the same subtree so use self
+        }
+        lvls += 1;
+      }
+
+      if (isSelf) {
+        boxmap.splice(it, 1); // Remove sib record
+      }
+    }
+
+    if (root === validatePath(path.slice().reverse(), data[index], index)) {
+      return [path.slice().reverse(), it];
+    }
+    it++;
+  }
+}
+
+export function createMT(treeSize: number): [string[][], string, string[], number] {
+  const originalData: string[] = Array.from({ length: treeSize }, (_, i) => 'tx' + i);
+  console.log('tree size', treeSize, treeSize % 2 === 1 ? 'uneven' : '');
+
+  // Create full Merkle Tree
+  const [merkleRoot, path] = genMerkleTree(originalData);
+
+  // Create paths based on full Merkle Tree
+  let paths: string[][] = [];
+  console.log('NEW MT PATHS');
+  for (let r = 0; r < treeSize; r++) {
+    let p = getMerklePath(r, path);
+    paths.push(p);
+  }
+
+  return [paths, merkleRoot, originalData, treeSize];
+}
+
+export function updateMT(
+  paths: string[][],
+  merkleRoot: string,
+  data: string[],
+  treeSize: number,
+): [string[][], string] {
+  console.log('UPDATE LEAFS and PATHS');
+  let newRoot: string = merkleRoot;
+
+  for (let i = 0; i < treeSize; i++) {
+    if (i != 0) break;
+    let newLeaf = `new_tx${i}`;
+    // Update a leaf
+    let [updatedRoot, sib] = updateMerkleTree(newRoot, paths[i], data[i], newLeaf, i, treeSize);
+    newRoot = updatedRoot;
+
+    console.log('sib', sib);
+
+    // Update each path to incorporate the new leaf data
+    for (let j = 0; j < paths.length; j++) {
+      paths[j] = updatePath(paths[j], sib);
+    }
+    // Note: Handle any error cases as per your logic
+  }
+
+  return [paths, newRoot];
+}
+
+function delayedUpdate(updates: number, size: number, paths: string[][], data: string[]) {
+  let masterRoot = '';
+  let it = 0;
+  let boxmaps: [string, [string, string, number][]][] = [];
+
+  while (true) {
+    // Randomly select a new leaf to update
+    let index = Math.floor(Math.random() * size);
+    let newLeaf = randomBytes(12).toString('hex');
+
+    if (boxmaps.length > 0) {
+      // Update the path
+      let [path, mapsit] = updatePathBoxmap(paths[index], boxmaps, masterRoot, data, index, size);
+      paths[index] = path;
+      if (masterRoot !== validatePath(path, data[index], index)) {
+        throw new Error('Root validation failed');
+      }
+    }
+
+    // Update tree
+    let [newRoot, sib] = updateTree(paths[index], newLeaf, index, size);
+    boxmaps.push([Date.now().toString(), sib]);
+    masterRoot = newRoot;
+    data[index] = newLeaf;
+
+    it++;
+
+    if (it > updates) {
+      break;
+    }
+  }
+
+  return paths;
+}
+
+// get root
+export const getRoot = async (appId?: number) => {
+  try {
+    if (!appId) return { success: false, message: 'Provide valid app id' };
+    console.log('process.env.ALGOD_PORT', process.env.ALGOD_PORT);
+
+    const algodClient = new algosdk.Algodv2(
+      process.env.ALGOD_TOKEN || '',
+      process.env.ALGOD_SERVER || '',
+      process.env.ALGOD_PORT,
+    );
+
+    const merkleTree = new WarehouseTreeClient(
+      {
+        resolveBy: 'id',
+        id: appId,
+      },
+      algodClient,
+    );
+
+    const state: any = await merkleTree.appClient.getGlobalState();
+    console.log('state', state);
+
+    const root = Buffer.from(state.root.valueRaw).toString('hex');
+    console.log('root', root);
+
+    return { success: true, root };
+  } catch (error) {
+    console.error('Fetching root from algo has failed!', (error as Error).message);
+    return {
+      success: false,
+      message: 'Fetching root from algo has failed!',
+      error: error as Error,
+    };
+  }
+};
+
+const treeSize = 100;
+// const [paths, merkleRoot, originalData, _] = createMT(treeSize);
+// console.log({
+//   paths,
+//   merkleRoot,
+//   originalData,
+// });
+// updateMT(paths, merkleRoot, originalData, treeSize);
+
+// delayedUpdate(1_000_0, treeSize, paths, originalData)
