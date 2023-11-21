@@ -24,100 +24,7 @@ interface Products {
 }
 
 const initialState: Products = {
-  products: [
-    // {
-    //   _id: "",
-    //   cropType: "paddy",
-    //   cropVariety: "",
-    //   location: "",
-    //   quantity: "",
-    //   packagingStatus: "",
-    //   harvestDate: "",
-    //   entryDate: "",
-    //   picture: "",
-    //   grade: "",
-    //   pricePerQuintal: "",
-    //   isVerified: true,
-    // },
-    {
-      cropType: "Paddy Seeds",
-      cropVariety: "Basmati",
-      quantity: "2000",
-      location: "Thanjavur",
-      harvestDate: "2022-01-01",
-      entryDate: "2022-05-02",
-      grade: "A",
-      packagingStatus: "Good",
-      isVerified: false,
-      picture: "",
-      pricePerQuintal: "10000",
-    },
-    {
-      cropType: "Millet Seeds",
-      cropVariety: "Basmati",
-      quantity: "2000",
-      location: "Thanjavur",
-      harvestDate: "2022-01-01",
-      entryDate: "2022-05-02",
-      grade: "A",
-      packagingStatus: "Good",
-      picture: "",
-      pricePerQuintal: "10000",
-      isVerified: false,
-    },
-    {
-      cropType: "Groundnut",
-      cropVariety: "Basmati",
-      quantity: "2000",
-      location: "Thanjavur",
-      harvestDate: "2022-01-01",
-      entryDate: "2022-05-02",
-      grade: "A",
-      packagingStatus: "Good",
-      picture: "",
-      pricePerQuintal: "10000",
-      isVerified: true,
-    },
-    {
-      cropType: "Maize",
-      cropVariety: "Basmati",
-      quantity: "2000",
-      location: "Thanjavur",
-      harvestDate: "2022-01-01",
-      entryDate: "2022-05-02",
-      grade: "A+",
-      packagingStatus: "Good",
-      picture: "",
-      pricePerQuintal: "10000",
-      isVerified: false,
-    },
-    {
-      cropType: "Ragi Seeds",
-      cropVariety: "Basmati",
-      quantity: "2000",
-      location: "Thanjavur",
-      harvestDate: "2022-01-01",
-      entryDate: "2022-05-02",
-      grade: "C",
-      packagingStatus: "Good",
-      picture: "",
-      pricePerQuintal: "10000",
-      isVerified: true,
-    },
-    {
-      cropType: "Black Gram",
-      cropVariety: "Basmati",
-      quantity: "2000",
-      location: "Thanjavur",
-      harvestDate: "2022-01-01",
-      entryDate: "2022-05-02",
-      grade: "C",
-      packagingStatus: "Good",
-      picture: "",
-      pricePerQuintal: "10000",
-      isVerified: false,
-    },
-  ],
+  products: [],
   productLoading: true,
   fetchError: false,
   productAddLoading: false,
@@ -129,9 +36,11 @@ const productSlice = createSlice({
   reducers: {
     fetchProduct: (state, action: PayloadAction<any>) => {
       state.products = action.payload;
+      state.productLoading = false;
+      state.productAddLoading = false;
     },
     productFetching: (state, action: PayloadAction<any>) => {
-      state.productLoading = action.payload;
+      state.productLoading = state.products.length ? false : action.payload;
     },
     setFetchError: (state, action: PayloadAction<any>) => {
       state.fetchError = action.payload;

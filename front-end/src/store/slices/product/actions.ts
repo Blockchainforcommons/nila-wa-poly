@@ -18,8 +18,8 @@ export const getProducts =
       );
       if (request.data.success) {
         dispatch(fetchProduct(request.data.data));
-        dispatch(productFetching(false));
-      }
+        // dispatch(productFetching(false));
+      } else dispatch(productFetching(false));
     } catch (err) {
       console.error(err);
       dispatch(productFetching(false));
@@ -57,11 +57,13 @@ export const addProduct =
         data,
         config
       );
-      console.log("postRequest", request);
       if (request.data.success) {
-        dispatch(fetchProduct([request.data.data, ...persistData]));
-        dispatch(setProductAddLoading(false));
+        dispatch(getProducts());
+        // dispatch(fetchProduct([request.data.data, ...persistData]));
         Toast({ message: "Product Added Successfully.", type: "success" });
+      } else {
+        dispatch(setProductAddLoading(false));
+        Toast({ message: request.data.message, type: "error" });
       }
     } catch (err) {
       console.error("post err", err);
@@ -69,3 +71,26 @@ export const addProduct =
       dispatch(setProductAddLoading(false));
     }
   };
+
+export const buyProduct = (id: any) => async (dispatch: Dispatch) => {
+  dispatch(setProductAddLoading(true));
+  try {
+    const request = await axios.put(
+      `${
+        import.meta.env.VITE_REACT_APP_BACKEND_ENDPOINT
+      }/api/products/delete/${id}`
+    );
+
+    if (request.data.success) {
+      dispatch(getProducts());
+      Toast({ message: "Buying product has succeed", type: "success" });
+    } else {
+      dispatch(setProductAddLoading(false));
+      Toast({ message: request.data.message, type: "error" });
+    }
+  } catch (err) {
+    console.error("post err", err);
+    Toast({ message: "Buying product has failed!", type: "error" });
+    dispatch(setProductAddLoading(false));
+  }
+};

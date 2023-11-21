@@ -12,9 +12,12 @@ import sugarcane from "../../../assets/images/sugarcane.png";
 import cotton from "../../../assets/images/cotton.png";
 import { IProductSlice } from "../../../store/slices/product";
 import { handleDateDifference } from "../../../utils/helpers";
+import { useThunkDispatch } from "../../../store/store";
+import { buyProduct } from "../../../store/slices/product/actions";
 
 const ItemCard: React.FC<{ data: IProductSlice }> = ({ data }) => {
   const [picture, setPicure] = useState<any>("");
+  const dispatch = useThunkDispatch();
 
   useEffect(() => {
     if (data.picture.data) {
@@ -107,7 +110,11 @@ const ItemCard: React.FC<{ data: IProductSlice }> = ({ data }) => {
       <S.StockValue>{data.quantity} kg</S.StockValue>
       {/* <S.DeleteIcon />
       <S.EditIcon /> */}
-      <S.BuyButton>Buy</S.BuyButton>
+      {data.isVerified && (
+        <S.BuyButton onClick={() => dispatch(buyProduct(data._id))}>
+          Buy
+        </S.BuyButton>
+      )}
     </S.ItemCard>
   );
 };

@@ -47,7 +47,7 @@ const PortfolioContent: FC = () => {
                 alignItems: "center",
               }}
             >
-              <h3>NO RECORDS FOUND</h3>
+              <h3>NO PRODUCTS FOUND</h3>
             </div>
           ) : (
             <PortfolioRaw />
