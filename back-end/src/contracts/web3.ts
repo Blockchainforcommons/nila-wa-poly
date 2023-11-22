@@ -75,14 +75,20 @@ export namespace WareHouseContract {
     }
   };
 
-  export const addLeaf = async (newItem: Bytes, path: Array<Bytes>, index: Uint256) => {
+  export const addLeaf = async (newItem: Bytes, path: Array<Bytes>, index: Number) => {
     try {
+      console.log({ newItem, path });
+
       const address = await web3.eth.getAccounts();
 
-      const result = await contract.methods.addLeaf(newItem, path, index).send({ from: address[0] });
+      const result = await contract.methods
+        .addLeaf(newItem, path, index)
+        .send({ from: address[0] })
+        .on('transactionHash', (hash: string) => console.log('hash', hash))
+        .on('error', (e: any) => console.log('e', e));
       return result;
     } catch (error) {
-      console.error(error);
+      console.error('Adding leaf has failed!', error);
       return false;
     }
   };

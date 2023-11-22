@@ -5,7 +5,17 @@ import Product from '../../models/Product';
 import { productValidator } from '../../services/validator';
 import { socketInstance } from '../../services/socket';
 import multer from 'multer';
-import { genMerkleTree, getMerklePathV2, updateMerkleTree, updatePath, getRoot } from '../../services/merkle_tree';
+import {
+  genMerkleTree,
+  getMerklePathV2,
+  updateMerkleTree,
+  updatePath,
+  getRoot,
+  createMT,
+  getMerklePath,
+} from '../../services/merkle_tree';
+import { TREE_SIZE } from '../../utils/constants';
+import { WareHouseContract } from '../../contracts/web3';
 
 const multerUpload = multer();
 
@@ -277,42 +287,75 @@ const createProduct = async (req: any, res: Response) => {
     };
 
     // validating body
-    await productValidator.validate(newProduct);
+    // await productValidator.validate(newProduct);
+
+    // empty hash
+    const emptyHash = createHash('');
 
     // creating hash
     const productHash = createHash(newProduct);
+    console.log('productHash', productHash);
+
     newProduct.hash = productHash;
-    newProduct.root = productHash;
-    newProduct.path = [];
 
     // fetching all products
     const products: any = await Product.find({}, { _id: 1, hash: 1 }).sort({
       createdAt: 1,
     });
+    if (products.length === TREE_SIZE)
+      return res.status(200).json({ success: false, message: 'Maximum Tree size exceed!' });
 
     if (products.length) {
       const productsHashes = products.map((p: any) => p.hash);
-      productsHashes.push(productHash);
-
-      // Create full Merkle Tree
+      // filling with empty hashes
+      for (let i = 0; i < TREE_SIZE - productsHashes.length; i++) productsHashes.push(emptyHash);
+      const targetIndex = productsHashes.findIndex((p: string) => p === emptyHash);
       const [merkleRoot, path] = genMerkleTree(productsHashes as string[]);
+      const targetPath = getMerklePath(targetIndex, path);
+      const prefixTargetPath = targetPath.map(p => `0x${p}`);
+      // ----------Perform contract part here ---------------------
+      const result = await WareHouseContract.addLeaf(`0x${productHash}`, prefixTargetPath, targetIndex);
+      console.log('result exist', result);
+
+      if (!result) return res.status(200).json({ success: false, message: 'Creating product has failed!' });
+      // -------------after contract-----------------
+      productsHashes[targetIndex] = productHash;
+      // Create full Merkle Tree
+      const [newMerkleRoot, newPath] = genMerkleTree(productsHashes as string[]);
 
       // Create paths based on full Merkle Tree
-      let paths: { [hash: string]: string[] } = {};
+      const paths: string[][] = [];
 
-      for (let r = 0; r < productsHashes.length; r++) {
-        let p = getMerklePathV2(r, path, productsHashes[r] as string);
-        paths = { ...paths, ...p };
-      }
-
-      // updating old products
-      for (const p of products) {
-        await Product.updateOne({ _id: p._id }, { $set: { path: paths[p.hash], root: merkleRoot } });
+      for (let r = 0; r <= targetIndex; r++) {
+        const p = getMerklePath(r, newPath);
+        paths.push(p);
       }
 
       // updating new product
-      newProduct.path = paths[newProduct.hash];
-      newProduct.root = merkleRoot;
+      newProduct.path = paths[targetIndex];
+      newProduct.root = newMerkleRoot;
+
+      // updating old products
+      for (const [i, p] of products.entries()) {
+        await Product.updateOne({ _id: p._id }, { $set: { path: paths[i], root: newMerkleRoot } });
+      }
+    } else {
+      const [paths, merkleRoot, originalData] = createMT(TREE_SIZE);
+      const prefixTargetPath = paths[0].map(p => `0x${p}`);
+      console.log('p', `0x${productHash}`);
+      console.log('prefixTargetPath', prefixTargetPath);
+
+      // -----------------performing contract part here-----------------
+      const result = await WareHouseContract.addLeaf(`0x${productHash}`, prefixTargetPath, 0);
+      console.log('result 0', result);
+      if (!result) return res.status(200).json({ success: false, message: 'Creating product has failed!' });
+      // -------------after contract-----------------
+      originalData[0] = productHash;
+      // Create full Merkle Tree with new product
+      const [newMerkleRoot, path] = genMerkleTree(originalData as string[]);
+      const p = getMerklePath(0, path);
+      newProduct.path = p;
+      newProduct.root = newMerkleRoot;
     }
     // Save new product
     const product = new Product(newProduct);
