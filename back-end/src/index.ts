@@ -1,16 +1,17 @@
 import mongoose from 'mongoose';
 import { Request, Response } from 'express';
-import json from 'body-parser';
+import bodyParser from 'body-parser';
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { socketServer } from './services/socket';
+import { WareHouseContract } from './contracts/web3';
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 8088;
 
-app.use(json());
+app.use(bodyParser.json());
 
 app.use(
   cors({
@@ -38,7 +39,15 @@ mongoose
   )
   .then(() => {
     console.log('Connected to database');
-    const server = app.listen(port, () => {
+    const server = app.listen(port, async () => {
+      const contract = await WareHouseContract.setup();
+      if (contract) {
+        console.log('Contract is ready');
+      } else {
+        console.log('Contract is not ready');
+      }
+      const depth = await WareHouseContract.getDepth();
+      console.log(`Depth is ${depth}`);
       console.log(`[server]: Server is running at http://localhost:${port}`);
     });
     socketServer(server);
