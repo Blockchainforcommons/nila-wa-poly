@@ -1,4 +1,4 @@
-import Web3, { Uint256 } from 'web3';
+import Web3, { Bytes, Uint256 } from 'web3';
 // import { Promise } from 'bluebird';
 import HDWalletProvider from '@truffle/hdwallet-provider';
 import WareHouseAbi from './build/warehouseTree.abi.json';
@@ -57,7 +57,7 @@ export namespace WareHouseContract {
 
   export const getSize = async () => {
     try {
-      const size = await contract.methods.size().call();
+      const size = await contract.methods.TREE_SIZE().call();
       return size;
     } catch (error) {
       console.error(error);
@@ -65,7 +65,7 @@ export namespace WareHouseContract {
     }
   };
 
-  export const verifyData = async (data: any, path: any, index: Uint256) => {
+  export const verifyData = async (data: Bytes, path: Array<Bytes>, index: Uint256) => {
     try {
       const result = await contract.methods.verifyData(data, path, index).call();
       return result;
@@ -75,11 +75,11 @@ export namespace WareHouseContract {
     }
   };
 
-  export const addLeaf = async (data: any, newItem: any, path: any, index: Uint256) => {
+  export const addLeaf = async (newItem: Bytes, path: Array<Bytes>, index: Uint256) => {
     try {
       const address = await web3.eth.getAccounts();
 
-      const result = await contract.methods.addLeaf(data, newItem, path, index).send({ from: address[0] });
+      const result = await contract.methods.addLeaf(newItem, path, index).send({ from: address[0] });
       return result;
     } catch (error) {
       console.error(error);
@@ -87,7 +87,7 @@ export namespace WareHouseContract {
     }
   };
 
-  export const updateLeaf = async (data: any, path: any, index: Uint256) => {
+  export const updateLeaf = async (data: Bytes, path: Array<Bytes>, index: Uint256) => {
     try {
       const address = await web3.eth.getAccounts();
 
