@@ -1,0 +1,34 @@
+version: "3.8"
+services:
+  mongo:
+    container_name: db_container
+    image: mongo:latest
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+  node:
+    build: ./back-end
+    ports:
+      - "1337:1337"
+    env_file:
+      - ./back-end/.env
+  socket-client:
+    depends_on:
+      - mongo
+    build: ./socket-client
+    ports:
+      - "4000:3000"
+    environment:
+      PORT: 3000
+      MONGODB_URI: mongodb://mongo_db:27017
+      DB_NAME: sample-db
+  ui:
+    depends_on:
+      - socket-client
+    build: ./front-end
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./front-end/.env
+volumes:
+  mongo_data: {}

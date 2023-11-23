@@ -31,22 +31,17 @@ export const APP_SPEC: AppSpec = {
         "delete_application": "CALL"
       }
     },
-    "createApplication()void": {
+    "createApplication(uint64)void": {
       "call_config": {
         "no_op": "CREATE"
       }
     },
-    "verify(byte[],byte[33][3])void": {
+    "verify(byte[32],byte[32][],uint64)void": {
       "call_config": {
         "no_op": "CALL"
       }
     },
-    "appendLeaf(byte[],byte[33][3])void": {
-      "call_config": {
-        "no_op": "CALL"
-      }
-    },
-    "updateLeaf(byte[],byte[],byte[33][3])void": {
+    "updateLeaf(byte[32],byte[32][],uint64)void": {
       "call_config": {
         "no_op": "CALL"
       }
@@ -73,6 +68,18 @@ export const APP_SPEC: AppSpec = {
         "size": {
           "type": "uint64",
           "key": "size"
+        },
+        "depth": {
+          "type": "uint64",
+          "key": "depth"
+        },
+        "tempstore": {
+          "type": "bytes",
+          "key": "tempstore"
+        },
+        "tempstore2": {
+          "type": "bytes",
+          "key": "tempstore2"
         }
       },
       "reserved": {}
@@ -80,8 +87,8 @@ export const APP_SPEC: AppSpec = {
   },
   "state": {
     "global": {
-      "num_byte_slices": 1,
-      "num_uints": 1
+      "num_byte_slices": 3,
+      "num_uints": 2
     },
     "local": {
       "num_byte_slices": 0,
@@ -89,7 +96,7 @@ export const APP_SPEC: AppSpec = {
     }
   },
   "source": {
-    "approval": "I3ByYWdtYSB2ZXJzaW9uIDkKCi8vIFRoaXMgVEVBTCB3YXMgZ2VuZXJhdGVkIGJ5IFRFQUxTY3JpcHQgdjAuNTkuMAovLyBodHRwczovL2dpdGh1Yi5jb20vYWxnb3JhbmRmb3VuZGF0aW9uL1RFQUxTY3JpcHQKCi8vIFRoaXMgY29udHJhY3QgaXMgY29tcGxpYW50IHdpdGggYW5kL29yIGltcGxlbWVudHMgdGhlIGZvbGxvd2luZyBBUkNzOiBbIEFSQzQgXQoKLy8gVGhlIGZvbGxvd2luZyB0ZW4gbGluZXMgb2YgVEVBTCBoYW5kbGUgaW5pdGlhbCBwcm9ncmFtIGZsb3cKLy8gVGhpcyBwYXR0ZXJuIGlzIHVzZWQgdG8gbWFrZSBpdCBlYXN5IGZvciBhbnlvbmUgdG8gcGFyc2UgdGhlIHN0YXJ0IG9mIHRoZSBwcm9ncmFtIGFuZCBkZXRlcm1pbmUgaWYgYSBzcGVjaWZpYyBhY3Rpb24gaXMgYWxsb3dlZAovLyBIZXJlLCBhY3Rpb24gcmVmZXJzIHRvIHRoZSBPbkNvbXBsZXRlIGluIGNvbWJpbmF0aW9uIHdpdGggd2hldGhlciB0aGUgYXBwIGlzIGJlaW5nIGNyZWF0ZWQgb3IgY2FsbGVkCi8vIEV2ZXJ5IHBvc3NpYmxlIGFjdGlvbiBmb3IgdGhpcyBjb250cmFjdCBpcyByZXByZXNlbnRlZCBpbiB0aGUgc3dpdGNoIHN0YXRlbWVudAovLyBJZiB0aGUgYWN0aW9uIGlzIG5vdCBpbXBsbWVudGVkIGluIHRoZSBjb250cmFjdCwgaXRzIHJlcHNlY3RpdmUgYnJhbmNoIHdpbGwgYmUgIk5PVF9JTVBMTUVOVEVEIiB3aGljaCBqdXN0IGNvbnRhaW5zICJlcnIiCnR4biBBcHBsaWNhdGlvbklECmludCAwCj4KaW50IDYKKgp0eG4gT25Db21wbGV0aW9uCisKc3dpdGNoIGNyZWF0ZV9Ob09wIE5PVF9JTVBMRU1FTlRFRCBOT1RfSU1QTEVNRU5URUQgTk9UX0lNUExFTUVOVEVEIE5PVF9JTVBMRU1FTlRFRCBOT1RfSU1QTEVNRU5URUQgY2FsbF9Ob09wIE5PVF9JTVBMRU1FTlRFRCBOT1RfSU1QTEVNRU5URUQgTk9UX0lNUExFTUVOVEVEIE5PVF9JTVBMRU1FTlRFRCBjYWxsX0RlbGV0ZUFwcGxpY2F0aW9uCgpOT1RfSU1QTEVNRU5URUQ6CgllcnIKCmNhbGNJbml0Um9vdDoKCXByb3RvIDIgMQoKCS8vIGNvbnRyYWN0cy93YXJlaG91c2VfdHJlZS5hbGdvLnRzOjE5CgkvLyByZXN1bHQgPSBFTVBUWV9IQVNICgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czo2CgkvLyBoZXgoJ2UzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUnKQoJYnl0ZSAweGUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUKCWZyYW1lX2J1cnkgLTEgLy8gcmVzdWx0OiBieXRlWzMyXQoKCS8vIGNvbnRyYWN0cy93YXJlaG91c2VfdHJlZS5hbGdvLnRzOjIxCgkvLyBpID0gMAoJaW50IDAKCWZyYW1lX2J1cnkgLTIgLy8gaTogdWludDY0Cgpmb3JfMDoKCWZyYW1lX2RpZyAtMiAvLyBpOiB1aW50NjQKCWludCAzCgk8CglieiBmb3JfMF9lbmQKCgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czoyMgoJLy8gcmVzdWx0ID0gc2hhMjU2KHJlc3VsdCArIHJlc3VsdCkKCWZyYW1lX2RpZyAtMSAvLyByZXN1bHQ6IGJ5dGVbMzJdCglmcmFtZV9kaWcgLTEgLy8gcmVzdWx0OiBieXRlWzMyXQoJY29uY2F0CglzaGEyNTYKCWZyYW1lX2J1cnkgLTEgLy8gcmVzdWx0OiBieXRlWzMyXQoKCS8vIGNvbnRyYWN0cy93YXJlaG91c2VfdHJlZS5hbGdvLnRzOjIxCgkvLyBpID0gaSArIDEKCWZyYW1lX2RpZyAtMiAvLyBpOiB1aW50NjQKCWludCAxCgkrCglmcmFtZV9idXJ5IC0yIC8vIGk6IHVpbnQ2NAoJYiBmb3JfMAoKZm9yXzBfZW5kOgoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6MjUKCS8vIHJldHVybiByZXN1bHQ7CglmcmFtZV9kaWcgLTEgLy8gcmVzdWx0OiBieXRlWzMyXQoJcmV0c3ViCgpoYXNoQ29uY2F0OgoJcHJvdG8gMiAxCgoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6MjkKCS8vIHJldHVybiBzaGEyNTYobGVmdCArIHJpZ2h0KTsKCWZyYW1lX2RpZyAtMSAvLyBsZWZ0OiBieXRlWzMyXQoJZnJhbWVfZGlnIC0yIC8vIHJpZ2h0OiBieXRlWzMyXQoJY29uY2F0CglzaGEyNTYKCXJldHN1YgoKaXNSaWdodFNpYmxpbmc6Cglwcm90byAxIDEKCgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czozMwoJLy8gcmV0dXJuIGdldGJ5dGUoZWxlbSwgMCkgPT09IFJJR0hUX1NJQkxJTkdfUFJFRklYOwoJZnJhbWVfZGlnIC0xIC8vIGVsZW06IGJ5dGVbMzNdCglpbnQgMAoJZ2V0Ynl0ZQoJaW50IDE3MAoJPT0KCXJldHN1YgoKY2FsY1Jvb3Q6Cglwcm90byA0IDEKCgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czozOQoJLy8gaSA9IDAKCWludCAwCglmcmFtZV9idXJ5IC0zIC8vIGk6IHVpbnQ2NAoKZm9yXzE6CglmcmFtZV9kaWcgLTMgLy8gaTogdWludDY0CglpbnQgMwoJPAoJYnogZm9yXzFfZW5kCglmcmFtZV9kaWcgLTMgLy8gaTogdWludDY0CglmcmFtZV9idXJ5IC00IC8vIGFjY2Vzc29yOiBhY2Nlc3Nvci8vMC8vZWxlbQoKCS8vIGlmMF9jb25kaXRpb24KCS8vIGNvbnRyYWN0cy93YXJlaG91c2VfdHJlZS5hbGdvLnRzOjQyCgkvLyB0aGlzLmlzUmlnaHRTaWJsaW5nKGVsZW0pCglmcmFtZV9kaWcgLTIgLy8gcGF0aDogYnl0ZVszM11bM10KCXN0b3JlIDAgLy8gZnVsbCBhcnJheQoJaW50IDAgLy8gaW5pdGlhbCBvZmZzZXQKCWZyYW1lX2RpZyAtNCAvLyBzYXZlZCBhY2Nlc3NvcjogYWNjZXNzb3IvLzAvL2VsZW0KCWludCAzMwoJKiAvLyBhY2MgKiB0eXBlTGVuZ3RoCgkrCglsb2FkIDAgLy8gZnVsbCBhcnJheQoJc3dhcAoJaW50IDMzCglleHRyYWN0MwoJY2FsbHN1YiBpc1JpZ2h0U2libGluZwoJYnogaWYwX2Vsc2UKCgkvLyBpZjBfY29uc2VxdWVudAoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6NDMKCS8vIHJlc3VsdCA9IHRoaXMuaGFzaENvbmNhdChyZXN1bHQsIGV4dHJhY3QzKGVsZW0sIDEsIDMyKSkKCWZyYW1lX2RpZyAtMiAvLyBwYXRoOiBieXRlWzMzXVszXQoJc3RvcmUgMCAvLyBmdWxsIGFycmF5CglpbnQgMCAvLyBpbml0aWFsIG9mZnNldAoJZnJhbWVfZGlnIC00IC8vIHNhdmVkIGFjY2Vzc29yOiBhY2Nlc3Nvci8vMC8vZWxlbQoJaW50IDMzCgkqIC8vIGFjYyAqIHR5cGVMZW5ndGgKCSsKCWxvYWQgMCAvLyBmdWxsIGFycmF5Cglzd2FwCglpbnQgMzMKCWV4dHJhY3QzCglleHRyYWN0IDEgMzIKCWZyYW1lX2RpZyAtMSAvLyBsZWFmOiBieXRlWzMyXQoJY2FsbHN1YiBoYXNoQ29uY2F0CglmcmFtZV9idXJ5IC0xIC8vIHJlc3VsdDogYnl0ZVszMl0KCWIgaWYwX2VuZAoKaWYwX2Vsc2U6CgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czo0NQoJLy8gcmVzdWx0ID0gdGhpcy5oYXNoQ29uY2F0KGV4dHJhY3QzKGVsZW0sIDEsIDMyKSwgcmVzdWx0KQoJZnJhbWVfZGlnIC0xIC8vIGxlYWY6IGJ5dGVbMzJdCglmcmFtZV9kaWcgLTIgLy8gcGF0aDogYnl0ZVszM11bM10KCXN0b3JlIDAgLy8gZnVsbCBhcnJheQoJaW50IDAgLy8gaW5pdGlhbCBvZmZzZXQKCWZyYW1lX2RpZyAtNCAvLyBzYXZlZCBhY2Nlc3NvcjogYWNjZXNzb3IvLzAvL2VsZW0KCWludCAzMwoJKiAvLyBhY2MgKiB0eXBlTGVuZ3RoCgkrCglsb2FkIDAgLy8gZnVsbCBhcnJheQoJc3dhcAoJaW50IDMzCglleHRyYWN0MwoJZXh0cmFjdCAxIDMyCgljYWxsc3ViIGhhc2hDb25jYXQKCWZyYW1lX2J1cnkgLTEgLy8gcmVzdWx0OiBieXRlWzMyXQoKaWYwX2VuZDoKCS8vIGNvbnRyYWN0cy93YXJlaG91c2VfdHJlZS5hbGdvLnRzOjM5CgkvLyBpID0gaSArIDEKCWZyYW1lX2RpZyAtMyAvLyBpOiB1aW50NjQKCWludCAxCgkrCglmcmFtZV9idXJ5IC0zIC8vIGk6IHVpbnQ2NAoJYiBmb3JfMQoKZm9yXzFfZW5kOgoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6NDkKCS8vIHJldHVybiByZXN1bHQ7CglmcmFtZV9kaWcgLTEgLy8gbGVhZjogYnl0ZVszMl0KCXJldHN1YgoKLy8gZGVsZXRlQXBwbGljYXRpb24oKXZvaWQKYWJpX3JvdXRlX2RlbGV0ZUFwcGxpY2F0aW9uOgoJLy8gZXhlY3V0ZSBkZWxldGVBcHBsaWNhdGlvbigpdm9pZAoJY2FsbHN1YiBkZWxldGVBcHBsaWNhdGlvbgoJaW50IDEKCXJldHVybgoKZGVsZXRlQXBwbGljYXRpb246Cglwcm90byAwIDAKCgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czo1MwoJLy8gdmVyaWZ5VHhuKHRoaXMudHhuLCB7IHNlbmRlcjogdGhpcy5hcHAuY3JlYXRvciB9KQoJLy8gdmVyaWZ5IHNlbmRlcgoJdHhuIFNlbmRlcgoJdHhuYSBBcHBsaWNhdGlvbnMgMAoJYXBwX3BhcmFtc19nZXQgQXBwQ3JlYXRvcgoJYXNzZXJ0Cgk9PQoJYXNzZXJ0CglyZXRzdWIKCi8vIGNyZWF0ZUFwcGxpY2F0aW9uKCl2b2lkCmFiaV9yb3V0ZV9jcmVhdGVBcHBsaWNhdGlvbjoKCS8vIGV4ZWN1dGUgY3JlYXRlQXBwbGljYXRpb24oKXZvaWQKCWNhbGxzdWIgY3JlYXRlQXBwbGljYXRpb24KCWludCAxCglyZXR1cm4KCmNyZWF0ZUFwcGxpY2F0aW9uOgoJcHJvdG8gMCAwCgoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6NTcKCS8vIHRoaXMucm9vdC52YWx1ZSA9IHRoaXMuY2FsY0luaXRSb290KCkKCWJ5dGUgMHg3MjZmNmY3NCAvLyAicm9vdCIKCWJ5dGUgMHg7IGR1cCAvLyBwdXNoIGVtcHR5IGJ5dGVzIHRvIGZpbGwgdGhlIHN0YWNrIGZyYW1lIGZvciB0aGlzIHN1YnJvdXRpbmUncyBsb2NhbCB2YXJpYWJsZXMKCWNhbGxzdWIgY2FsY0luaXRSb290CglhcHBfZ2xvYmFsX3B1dAoJcmV0c3ViCgovLyB2ZXJpZnkoYnl0ZVszM11bM10sYnl0ZXMpdm9pZAphYmlfcm91dGVfdmVyaWZ5OgoJLy8gcGF0aDogYnl0ZVszM11bM10KCXR4bmEgQXBwbGljYXRpb25BcmdzIDIKCWR1cAoJbGVuCglpbnQgOTkKCT09Cglhc3NlcnQKCgkvLyBkYXRhOiBieXRlW10KCXR4bmEgQXBwbGljYXRpb25BcmdzIDEKCWV4dHJhY3QgMiAwCgoJLy8gZXhlY3V0ZSB2ZXJpZnkoYnl0ZVszM11bM10sYnl0ZXMpdm9pZAoJY2FsbHN1YiB2ZXJpZnkKCWludCAxCglyZXR1cm4KCnZlcmlmeToKCXByb3RvIDIgMAoKCS8vIGNvbnRyYWN0cy93YXJlaG91c2VfdHJlZS5hbGdvLnRzOjYxCgkvLyBhc3NlcnQodGhpcy5yb290LnZhbHVlID09PSB0aGlzLmNhbGNSb290KHNoYTI1NihkYXRhKSwgcGF0aCkpCglieXRlIDB4NzI2ZjZmNzQgLy8gInJvb3QiCglhcHBfZ2xvYmFsX2dldAoJYnl0ZSAweDsgZHVwIC8vIHB1c2ggZW1wdHkgYnl0ZXMgdG8gZmlsbCB0aGUgc3RhY2sgZnJhbWUgZm9yIHRoaXMgc3Vicm91dGluZSdzIGxvY2FsIHZhcmlhYmxlcwoJZnJhbWVfZGlnIC0yIC8vIHBhdGg6IGJ5dGVbMzNdWzNdCglmcmFtZV9kaWcgLTEgLy8gZGF0YTogYnl0ZXMKCXNoYTI1NgoJY2FsbHN1YiBjYWxjUm9vdAoJPT0KCWFzc2VydAoJcmV0c3ViCgovLyBhcHBlbmRMZWFmKGJ5dGVbMzNdWzNdLGJ5dGVzKXZvaWQKYWJpX3JvdXRlX2FwcGVuZExlYWY6CgkvLyBwYXRoOiBieXRlWzMzXVszXQoJdHhuYSBBcHBsaWNhdGlvbkFyZ3MgMgoJZHVwCglsZW4KCWludCA5OQoJPT0KCWFzc2VydAoKCS8vIGRhdGE6IGJ5dGVbXQoJdHhuYSBBcHBsaWNhdGlvbkFyZ3MgMQoJZXh0cmFjdCAyIDAKCgkvLyBleGVjdXRlIGFwcGVuZExlYWYoYnl0ZVszM11bM10sYnl0ZXMpdm9pZAoJY2FsbHN1YiBhcHBlbmRMZWFmCglpbnQgMQoJcmV0dXJuCgphcHBlbmRMZWFmOgoJcHJvdG8gMiAwCgoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6NjUKCS8vIGFzc2VydChkYXRhICE9PSAnJykKCWZyYW1lX2RpZyAtMSAvLyBkYXRhOiBieXRlcwoJYnl0ZSAweCAvLyAiIgoJIT0KCWFzc2VydAoKCS8vIGNvbnRyYWN0cy93YXJlaG91c2VfdHJlZS5hbGdvLnRzOjY2CgkvLyBhc3NlcnQodGhpcy5yb290LnZhbHVlID09PSB0aGlzLmNhbGNSb290KEVNUFRZX0hBU0gsIHBhdGgpKQoJYnl0ZSAweDcyNmY2Zjc0IC8vICJyb290IgoJYXBwX2dsb2JhbF9nZXQKCWJ5dGUgMHg7IGR1cCAvLyBwdXNoIGVtcHR5IGJ5dGVzIHRvIGZpbGwgdGhlIHN0YWNrIGZyYW1lIGZvciB0aGlzIHN1YnJvdXRpbmUncyBsb2NhbCB2YXJpYWJsZXMKCWZyYW1lX2RpZyAtMiAvLyBwYXRoOiBieXRlWzMzXVszXQoKCS8vIGNvbnRyYWN0cy93YXJlaG91c2VfdHJlZS5hbGdvLnRzOjYKCS8vIGhleCgnZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NScpCglieXRlIDB4ZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NQoJY2FsbHN1YiBjYWxjUm9vdAoJPT0KCWFzc2VydAoKCS8vIGNvbnRyYWN0cy93YXJlaG91c2VfdHJlZS5hbGdvLnRzOjY4CgkvLyB0aGlzLnJvb3QudmFsdWUgPSB0aGlzLmNhbGNSb290KHNoYTI1NihkYXRhKSwgcGF0aCkKCWJ5dGUgMHg3MjZmNmY3NCAvLyAicm9vdCIKCWJ5dGUgMHg7IGR1cCAvLyBwdXNoIGVtcHR5IGJ5dGVzIHRvIGZpbGwgdGhlIHN0YWNrIGZyYW1lIGZvciB0aGlzIHN1YnJvdXRpbmUncyBsb2NhbCB2YXJpYWJsZXMKCWZyYW1lX2RpZyAtMiAvLyBwYXRoOiBieXRlWzMzXVszXQoJZnJhbWVfZGlnIC0xIC8vIGRhdGE6IGJ5dGVzCglzaGEyNTYKCWNhbGxzdWIgY2FsY1Jvb3QKCWFwcF9nbG9iYWxfcHV0CgoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6NzAKCS8vIHRoaXMuc2l6ZS52YWx1ZSA9IHRoaXMuc2l6ZS52YWx1ZSArIDEKCWJ5dGUgMHg3MzY5N2E2NSAvLyAic2l6ZSIKCWJ5dGUgMHg3MzY5N2E2NSAvLyAic2l6ZSIKCWFwcF9nbG9iYWxfZ2V0CglpbnQgMQoJKwoJYXBwX2dsb2JhbF9wdXQKCXJldHN1YgoKLy8gdXBkYXRlTGVhZihieXRlWzMzXVszXSxieXRlcyxieXRlcyl2b2lkCmFiaV9yb3V0ZV91cGRhdGVMZWFmOgoJLy8gcGF0aDogYnl0ZVszM11bM10KCXR4bmEgQXBwbGljYXRpb25BcmdzIDMKCWR1cAoJbGVuCglpbnQgOTkKCT09Cglhc3NlcnQKCgkvLyBuZXdEYXRhOiBieXRlW10KCXR4bmEgQXBwbGljYXRpb25BcmdzIDIKCWV4dHJhY3QgMiAwCgoJLy8gb2xkRGF0YTogYnl0ZVtdCgl0eG5hIEFwcGxpY2F0aW9uQXJncyAxCglleHRyYWN0IDIgMAoKCS8vIGV4ZWN1dGUgdXBkYXRlTGVhZihieXRlWzMzXVszXSxieXRlcyxieXRlcyl2b2lkCgljYWxsc3ViIHVwZGF0ZUxlYWYKCWludCAxCglyZXR1cm4KCnVwZGF0ZUxlYWY6Cglwcm90byAzIDAKCgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czo3NAoJLy8gYXNzZXJ0KG5ld0RhdGEgIT09ICcnKQoJZnJhbWVfZGlnIC0yIC8vIG5ld0RhdGE6IGJ5dGVzCglieXRlIDB4IC8vICIiCgkhPQoJYXNzZXJ0CgoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6NzUKCS8vIGFzc2VydCh0aGlzLnJvb3QudmFsdWUgPT09IHRoaXMuY2FsY1Jvb3Qoc2hhMjU2KG9sZERhdGEpLCBwYXRoKSkKCWJ5dGUgMHg3MjZmNmY3NCAvLyAicm9vdCIKCWFwcF9nbG9iYWxfZ2V0CglieXRlIDB4OyBkdXAgLy8gcHVzaCBlbXB0eSBieXRlcyB0byBmaWxsIHRoZSBzdGFjayBmcmFtZSBmb3IgdGhpcyBzdWJyb3V0aW5lJ3MgbG9jYWwgdmFyaWFibGVzCglmcmFtZV9kaWcgLTMgLy8gcGF0aDogYnl0ZVszM11bM10KCWZyYW1lX2RpZyAtMSAvLyBvbGREYXRhOiBieXRlcwoJc2hhMjU2CgljYWxsc3ViIGNhbGNSb290Cgk9PQoJYXNzZXJ0CgoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6NzcKCS8vIHRoaXMucm9vdC52YWx1ZSA9IHRoaXMuY2FsY1Jvb3Qoc2hhMjU2KG5ld0RhdGEpLCBwYXRoKQoJYnl0ZSAweDcyNmY2Zjc0IC8vICJyb290IgoJYnl0ZSAweDsgZHVwIC8vIHB1c2ggZW1wdHkgYnl0ZXMgdG8gZmlsbCB0aGUgc3RhY2sgZnJhbWUgZm9yIHRoaXMgc3Vicm91dGluZSdzIGxvY2FsIHZhcmlhYmxlcwoJZnJhbWVfZGlnIC0zIC8vIHBhdGg6IGJ5dGVbMzNdWzNdCglmcmFtZV9kaWcgLTIgLy8gbmV3RGF0YTogYnl0ZXMKCXNoYTI1NgoJY2FsbHN1YiBjYWxjUm9vdAoJYXBwX2dsb2JhbF9wdXQKCXJldHN1YgoKY3JlYXRlX05vT3A6CgltZXRob2QgImNyZWF0ZUFwcGxpY2F0aW9uKCl2b2lkIgoJdHhuYSBBcHBsaWNhdGlvbkFyZ3MgMAoJbWF0Y2ggYWJpX3JvdXRlX2NyZWF0ZUFwcGxpY2F0aW9uCgllcnIKCmNhbGxfTm9PcDoKCW1ldGhvZCAidmVyaWZ5KGJ5dGVbXSxieXRlWzMzXVszXSl2b2lkIgoJbWV0aG9kICJhcHBlbmRMZWFmKGJ5dGVbXSxieXRlWzMzXVszXSl2b2lkIgoJbWV0aG9kICJ1cGRhdGVMZWFmKGJ5dGVbXSxieXRlW10sYnl0ZVszM11bM10pdm9pZCIKCXR4bmEgQXBwbGljYXRpb25BcmdzIDAKCW1hdGNoIGFiaV9yb3V0ZV92ZXJpZnkgYWJpX3JvdXRlX2FwcGVuZExlYWYgYWJpX3JvdXRlX3VwZGF0ZUxlYWYKCWVycgoKY2FsbF9EZWxldGVBcHBsaWNhdGlvbjoKCW1ldGhvZCAiZGVsZXRlQXBwbGljYXRpb24oKXZvaWQiCgl0eG5hIEFwcGxpY2F0aW9uQXJncyAwCgltYXRjaCBhYmlfcm91dGVfZGVsZXRlQXBwbGljYXRpb24KCWVycg==",
+    "approval": "I3ByYWdtYSB2ZXJzaW9uIDkKCi8vIFRoaXMgVEVBTCB3YXMgZ2VuZXJhdGVkIGJ5IFRFQUxTY3JpcHQgdjAuNTkuMAovLyBodHRwczovL2dpdGh1Yi5jb20vYWxnb3JhbmRmb3VuZGF0aW9uL1RFQUxTY3JpcHQKCi8vIFRoaXMgY29udHJhY3QgaXMgY29tcGxpYW50IHdpdGggYW5kL29yIGltcGxlbWVudHMgdGhlIGZvbGxvd2luZyBBUkNzOiBbIEFSQzQgXQoKLy8gVGhlIGZvbGxvd2luZyB0ZW4gbGluZXMgb2YgVEVBTCBoYW5kbGUgaW5pdGlhbCBwcm9ncmFtIGZsb3cKLy8gVGhpcyBwYXR0ZXJuIGlzIHVzZWQgdG8gbWFrZSBpdCBlYXN5IGZvciBhbnlvbmUgdG8gcGFyc2UgdGhlIHN0YXJ0IG9mIHRoZSBwcm9ncmFtIGFuZCBkZXRlcm1pbmUgaWYgYSBzcGVjaWZpYyBhY3Rpb24gaXMgYWxsb3dlZAovLyBIZXJlLCBhY3Rpb24gcmVmZXJzIHRvIHRoZSBPbkNvbXBsZXRlIGluIGNvbWJpbmF0aW9uIHdpdGggd2hldGhlciB0aGUgYXBwIGlzIGJlaW5nIGNyZWF0ZWQgb3IgY2FsbGVkCi8vIEV2ZXJ5IHBvc3NpYmxlIGFjdGlvbiBmb3IgdGhpcyBjb250cmFjdCBpcyByZXByZXNlbnRlZCBpbiB0aGUgc3dpdGNoIHN0YXRlbWVudAovLyBJZiB0aGUgYWN0aW9uIGlzIG5vdCBpbXBsbWVudGVkIGluIHRoZSBjb250cmFjdCwgaXRzIHJlcHNlY3RpdmUgYnJhbmNoIHdpbGwgYmUgIk5PVF9JTVBMTUVOVEVEIiB3aGljaCBqdXN0IGNvbnRhaW5zICJlcnIiCnR4biBBcHBsaWNhdGlvbklECmludCAwCj4KaW50IDYKKgp0eG4gT25Db21wbGV0aW9uCisKc3dpdGNoIGNyZWF0ZV9Ob09wIE5PVF9JTVBMRU1FTlRFRCBOT1RfSU1QTEVNRU5URUQgTk9UX0lNUExFTUVOVEVEIE5PVF9JTVBMRU1FTlRFRCBOT1RfSU1QTEVNRU5URUQgY2FsbF9Ob09wIE5PVF9JTVBMRU1FTlRFRCBOT1RfSU1QTEVNRU5URUQgTk9UX0lNUExFTUVOVEVEIE5PVF9JTVBMRU1FTlRFRCBjYWxsX0RlbGV0ZUFwcGxpY2F0aW9uCgpOT1RfSU1QTEVNRU5URUQ6CgllcnIKCmNhbGNJbml0Um9vdDoKCXByb3RvIDIgMQoKCS8vIGNvbnRyYWN0cy93YXJlaG91c2VfdHJlZS5hbGdvLnRzOjIwCgkvLyByZXN1bHQgPSBFTVBUWV9IQVNICgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czo1CgkvLyBoZXgoJ2UzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUnKQoJYnl0ZSAweGUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUKCWZyYW1lX2J1cnkgLTEgLy8gcmVzdWx0OiBieXRlWzMyXQoKCS8vIGNvbnRyYWN0cy93YXJlaG91c2VfdHJlZS5hbGdvLnRzOjIyCgkvLyBpID0gMAoJaW50IDAKCWZyYW1lX2J1cnkgLTIgLy8gaTogdWludDY0Cgpmb3JfMDoKCWZyYW1lX2RpZyAtMiAvLyBpOiB1aW50NjQKCgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czoyMgoJLy8gdGhpcy5kZXB0aC52YWx1ZQoJYnl0ZSAweDY0NjU3MDc0NjggLy8gImRlcHRoIgoJYXBwX2dsb2JhbF9nZXQKCTwKCWJ6IGZvcl8wX2VuZAoKCS8vIGNvbnRyYWN0cy93YXJlaG91c2VfdHJlZS5hbGdvLnRzOjIzCgkvLyByZXN1bHQgPSBzaGEyNTYocmVzdWx0ICsgcmVzdWx0KQoJZnJhbWVfZGlnIC0xIC8vIHJlc3VsdDogYnl0ZVszMl0KCWZyYW1lX2RpZyAtMSAvLyByZXN1bHQ6IGJ5dGVbMzJdCgljb25jYXQKCXNoYTI1NgoJZnJhbWVfYnVyeSAtMSAvLyByZXN1bHQ6IGJ5dGVbMzJdCgoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6MjIKCS8vIGkgPSBpICsgMQoJZnJhbWVfZGlnIC0yIC8vIGk6IHVpbnQ2NAoJaW50IDEKCSsKCWZyYW1lX2J1cnkgLTIgLy8gaTogdWludDY0CgliIGZvcl8wCgpmb3JfMF9lbmQ6CgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czoyNgoJLy8gcmV0dXJuIHJlc3VsdDsKCWZyYW1lX2RpZyAtMSAvLyByZXN1bHQ6IGJ5dGVbMzJdCglyZXRzdWIKCmhhc2hDb25jYXQ6Cglwcm90byAyIDEKCgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czozMAoJLy8gcmV0dXJuIHNoYTI1NihsZWZ0ICsgcmlnaHQpOwoJZnJhbWVfZGlnIC0xIC8vIGxlZnQ6IGJ5dGVbMzJdCglmcmFtZV9kaWcgLTIgLy8gcmlnaHQ6IGJ5dGVbMzJdCgljb25jYXQKCXNoYTI1NgoJcmV0c3ViCgpjYWxjUm9vdDoKCXByb3RvIDUgMQoKCS8vIGNvbnRyYWN0cy93YXJlaG91c2VfdHJlZS5hbGdvLnRzOjM2CgkvLyBpID0gMAoJaW50IDAKCWZyYW1lX2J1cnkgLTQgLy8gaTogdWludDY0Cgpmb3JfMToKCWZyYW1lX2RpZyAtNCAvLyBpOiB1aW50NjQKCgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czozNgoJLy8gdGhpcy5kZXB0aC52YWx1ZQoJYnl0ZSAweDY0NjU3MDc0NjggLy8gImRlcHRoIgoJYXBwX2dsb2JhbF9nZXQKCTwKCWJ6IGZvcl8xX2VuZAoJZnJhbWVfZGlnIC00IC8vIGk6IHVpbnQ2NAoJZnJhbWVfYnVyeSAtNSAvLyBhY2Nlc3NvcjogYWNjZXNzb3IvLzAvL2VsZW0KCgkvLyBpZjBfY29uZGl0aW9uCgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czozOQoJLy8gaW5kZXggJSAyID09PSAwCglmcmFtZV9kaWcgLTMgLy8gaW5kZXg6IHVpbnQ2NAoJaW50IDIKCSUKCWludCAwCgk9PQoJYnogaWYwX2Vsc2UKCgkvLyBpZjBfY29uc2VxdWVudAoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6NDAKCS8vIHRoaXMudGVtcHN0b3JlLnZhbHVlID0gZWxlbQoJYnl0ZSAweDc0NjU2ZDcwNzM3NDZmNzI2NSAvLyAidGVtcHN0b3JlIgoJZnJhbWVfZGlnIC0yIC8vIHBhdGg6IGJ5dGVbMzJdW10KCXN0b3JlIDAgLy8gZnVsbCBhcnJheQoJaW50IDAgLy8gaW5pdGlhbCBvZmZzZXQKCWZyYW1lX2RpZyAtNSAvLyBzYXZlZCBhY2Nlc3NvcjogYWNjZXNzb3IvLzAvL2VsZW0KCWludCAzMgoJKiAvLyBhY2MgKiB0eXBlTGVuZ3RoCgkrCglsb2FkIDAgLy8gZnVsbCBhcnJheQoJc3dhcAoJaW50IDMyCglleHRyYWN0MwoJYXBwX2dsb2JhbF9wdXQKCgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czo0MQoJLy8gdGhpcy50ZW1wc3RvcmUyLnZhbHVlID0gcmVzdWx0CglieXRlIDB4NzQ2NTZkNzA3Mzc0NmY3MjY1MzIgLy8gInRlbXBzdG9yZTIiCglmcmFtZV9kaWcgLTEgLy8gbGVhZjogYnl0ZVszMl0KCWFwcF9nbG9iYWxfcHV0CgoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6NDIKCS8vIHJlc3VsdCA9IHRoaXMuaGFzaENvbmNhdChlbGVtLCByZXN1bHQpCglmcmFtZV9kaWcgLTEgLy8gbGVhZjogYnl0ZVszMl0KCWZyYW1lX2RpZyAtMiAvLyBwYXRoOiBieXRlWzMyXVtdCglzdG9yZSAwIC8vIGZ1bGwgYXJyYXkKCWludCAwIC8vIGluaXRpYWwgb2Zmc2V0CglmcmFtZV9kaWcgLTUgLy8gc2F2ZWQgYWNjZXNzb3I6IGFjY2Vzc29yLy8wLy9lbGVtCglpbnQgMzIKCSogLy8gYWNjICogdHlwZUxlbmd0aAoJKwoJbG9hZCAwIC8vIGZ1bGwgYXJyYXkKCXN3YXAKCWludCAzMgoJZXh0cmFjdDMKCWNhbGxzdWIgaGFzaENvbmNhdAoJZnJhbWVfYnVyeSAtMSAvLyByZXN1bHQ6IGJ5dGVbMzJdCgliIGlmMF9lbmQKCmlmMF9lbHNlOgoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6NDQKCS8vIHJlc3VsdCA9IHRoaXMuaGFzaENvbmNhdChyZXN1bHQsIGVsZW0pCglmcmFtZV9kaWcgLTIgLy8gcGF0aDogYnl0ZVszMl1bXQoJc3RvcmUgMCAvLyBmdWxsIGFycmF5CglpbnQgMCAvLyBpbml0aWFsIG9mZnNldAoJZnJhbWVfZGlnIC01IC8vIHNhdmVkIGFjY2Vzc29yOiBhY2Nlc3Nvci8vMC8vZWxlbQoJaW50IDMyCgkqIC8vIGFjYyAqIHR5cGVMZW5ndGgKCSsKCWxvYWQgMCAvLyBmdWxsIGFycmF5Cglzd2FwCglpbnQgMzIKCWV4dHJhY3QzCglmcmFtZV9kaWcgLTEgLy8gbGVhZjogYnl0ZVszMl0KCWNhbGxzdWIgaGFzaENvbmNhdAoJZnJhbWVfYnVyeSAtMSAvLyByZXN1bHQ6IGJ5dGVbMzJdCgppZjBfZW5kOgoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6MzYKCS8vIGkgPSBpICsgMQoJZnJhbWVfZGlnIC00IC8vIGk6IHVpbnQ2NAoJaW50IDEKCSsKCWZyYW1lX2J1cnkgLTQgLy8gaTogdWludDY0CgliIGZvcl8xCgpmb3JfMV9lbmQ6CgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czo0OAoJLy8gcmV0dXJuIHJlc3VsdDsKCWZyYW1lX2RpZyAtMSAvLyBsZWFmOiBieXRlWzMyXQoJcmV0c3ViCgovLyBkZWxldGVBcHBsaWNhdGlvbigpdm9pZAphYmlfcm91dGVfZGVsZXRlQXBwbGljYXRpb246CgkvLyBleGVjdXRlIGRlbGV0ZUFwcGxpY2F0aW9uKCl2b2lkCgljYWxsc3ViIGRlbGV0ZUFwcGxpY2F0aW9uCglpbnQgMQoJcmV0dXJuCgpkZWxldGVBcHBsaWNhdGlvbjoKCXByb3RvIDAgMAoKCS8vIGNvbnRyYWN0cy93YXJlaG91c2VfdHJlZS5hbGdvLnRzOjUyCgkvLyB2ZXJpZnlUeG4odGhpcy50eG4sIHsgc2VuZGVyOiB0aGlzLmFwcC5jcmVhdG9yIH0pCgkvLyB2ZXJpZnkgc2VuZGVyCgl0eG4gU2VuZGVyCgl0eG5hIEFwcGxpY2F0aW9ucyAwCglhcHBfcGFyYW1zX2dldCBBcHBDcmVhdG9yCglhc3NlcnQKCT09Cglhc3NlcnQKCXJldHN1YgoKLy8gY3JlYXRlQXBwbGljYXRpb24odWludDY0KXZvaWQKYWJpX3JvdXRlX2NyZWF0ZUFwcGxpY2F0aW9uOgoJLy8gc2l6ZTogdWludDY0Cgl0eG5hIEFwcGxpY2F0aW9uQXJncyAxCglidG9pCgoJLy8gZXhlY3V0ZSBjcmVhdGVBcHBsaWNhdGlvbih1aW50NjQpdm9pZAoJY2FsbHN1YiBjcmVhdGVBcHBsaWNhdGlvbgoJaW50IDEKCXJldHVybgoKY3JlYXRlQXBwbGljYXRpb246Cglwcm90byAxIDAKCgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czo1NgoJLy8gdGhpcy5zaXplLnZhbHVlID0gc2l6ZQoJYnl0ZSAweDczNjk3YTY1IC8vICJzaXplIgoJZnJhbWVfZGlnIC0xIC8vIHNpemU6IHVpbnQ2NAoJYXBwX2dsb2JhbF9wdXQKCgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czo1OAoJLy8gdGhpcy5kZXB0aC52YWx1ZSA9IGJpdGxlbihzaXplKSAtIDEKCWJ5dGUgMHg2NDY1NzA3NDY4IC8vICJkZXB0aCIKCWZyYW1lX2RpZyAtMSAvLyBzaXplOiB1aW50NjQKCWJpdGxlbgoJaW50IDEKCS0KCWFwcF9nbG9iYWxfcHV0CgoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6NTkKCS8vIHRoaXMucm9vdC52YWx1ZSA9IHRoaXMuY2FsY0luaXRSb290KCkKCWJ5dGUgMHg3MjZmNmY3NCAvLyAicm9vdCIKCWJ5dGUgMHg7IGR1cCAvLyBwdXNoIGVtcHR5IGJ5dGVzIHRvIGZpbGwgdGhlIHN0YWNrIGZyYW1lIGZvciB0aGlzIHN1YnJvdXRpbmUncyBsb2NhbCB2YXJpYWJsZXMKCWNhbGxzdWIgY2FsY0luaXRSb290CglhcHBfZ2xvYmFsX3B1dAoJcmV0c3ViCgovLyB2ZXJpZnkodWludDY0LGJ5dGVbMzJdW10sYnl0ZVszMl0pdm9pZAphYmlfcm91dGVfdmVyaWZ5OgoJLy8gaW5kZXg6IHVpbnQ2NAoJdHhuYSBBcHBsaWNhdGlvbkFyZ3MgMwoJYnRvaQoKCS8vIHBhdGg6IGJ5dGVbMzJdW10KCXR4bmEgQXBwbGljYXRpb25BcmdzIDIKCWV4dHJhY3QgMiAwCgoJLy8gZGF0YTogYnl0ZVszMl0KCXR4bmEgQXBwbGljYXRpb25BcmdzIDEKCWR1cAoJbGVuCglpbnQgMzIKCT09Cglhc3NlcnQKCgkvLyBleGVjdXRlIHZlcmlmeSh1aW50NjQsYnl0ZVszMl1bXSxieXRlWzMyXSl2b2lkCgljYWxsc3ViIHZlcmlmeQoJaW50IDEKCXJldHVybgoKdmVyaWZ5OgoJcHJvdG8gMyAwCgoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6NjMKCS8vIGFzc2VydCh0aGlzLnJvb3QudmFsdWUgPT09IHRoaXMuY2FsY1Jvb3QoZGF0YSwgcGF0aCxpbmRleCkpCglieXRlIDB4NzI2ZjZmNzQgLy8gInJvb3QiCglhcHBfZ2xvYmFsX2dldAoJYnl0ZSAweDsgZHVwIC8vIHB1c2ggZW1wdHkgYnl0ZXMgdG8gZmlsbCB0aGUgc3RhY2sgZnJhbWUgZm9yIHRoaXMgc3Vicm91dGluZSdzIGxvY2FsIHZhcmlhYmxlcwoJZnJhbWVfZGlnIC0zIC8vIGluZGV4OiB1aW50NjQKCWZyYW1lX2RpZyAtMiAvLyBwYXRoOiBieXRlWzMyXVtdCglmcmFtZV9kaWcgLTEgLy8gZGF0YTogYnl0ZVszMl0KCWNhbGxzdWIgY2FsY1Jvb3QKCT09Cglhc3NlcnQKCXJldHN1YgoKLy8gdXBkYXRlTGVhZih1aW50NjQsYnl0ZVszMl1bXSxieXRlWzMyXSl2b2lkCmFiaV9yb3V0ZV91cGRhdGVMZWFmOgoJLy8gaW5kZXg6IHVpbnQ2NAoJdHhuYSBBcHBsaWNhdGlvbkFyZ3MgMwoJYnRvaQoKCS8vIHBhdGg6IGJ5dGVbMzJdW10KCXR4bmEgQXBwbGljYXRpb25BcmdzIDIKCWV4dHJhY3QgMiAwCgoJLy8gZGF0YTogYnl0ZVszMl0KCXR4bmEgQXBwbGljYXRpb25BcmdzIDEKCWR1cAoJbGVuCglpbnQgMzIKCT09Cglhc3NlcnQKCgkvLyBleGVjdXRlIHVwZGF0ZUxlYWYodWludDY0LGJ5dGVbMzJdW10sYnl0ZVszMl0pdm9pZAoJY2FsbHN1YiB1cGRhdGVMZWFmCglpbnQgMQoJcmV0dXJuCgp1cGRhdGVMZWFmOgoJcHJvdG8gMyAwCgoJLy8gY29udHJhY3RzL3dhcmVob3VzZV90cmVlLmFsZ28udHM6NjcKCS8vIGFzc2VydCh0aGlzLnJvb3QudmFsdWUgPT0gdGhpcy5jYWxjUm9vdChkYXRhLCBwYXRoLGluZGV4KSkKCWJ5dGUgMHg3MjZmNmY3NCAvLyAicm9vdCIKCWFwcF9nbG9iYWxfZ2V0CglieXRlIDB4OyBkdXAgLy8gcHVzaCBlbXB0eSBieXRlcyB0byBmaWxsIHRoZSBzdGFjayBmcmFtZSBmb3IgdGhpcyBzdWJyb3V0aW5lJ3MgbG9jYWwgdmFyaWFibGVzCglmcmFtZV9kaWcgLTMgLy8gaW5kZXg6IHVpbnQ2NAoJZnJhbWVfZGlnIC0yIC8vIHBhdGg6IGJ5dGVbMzJdW10KCWZyYW1lX2RpZyAtMSAvLyBkYXRhOiBieXRlWzMyXQoJY2FsbHN1YiBjYWxjUm9vdAoJPT0KCWFzc2VydAoKCS8vIGNvbnRyYWN0cy93YXJlaG91c2VfdHJlZS5hbGdvLnRzOjY5CgkvLyB0aGlzLnJvb3QudmFsdWUgPSB0aGlzLmNhbGNSb290KHNoYTI1NihFTVBUWV9IQVNIKSwgcGF0aCwgaW5kZXgpCglieXRlIDB4NzI2ZjZmNzQgLy8gInJvb3QiCglieXRlIDB4OyBkdXAgLy8gcHVzaCBlbXB0eSBieXRlcyB0byBmaWxsIHRoZSBzdGFjayBmcmFtZSBmb3IgdGhpcyBzdWJyb3V0aW5lJ3MgbG9jYWwgdmFyaWFibGVzCglmcmFtZV9kaWcgLTMgLy8gaW5kZXg6IHVpbnQ2NAoJZnJhbWVfZGlnIC0yIC8vIHBhdGg6IGJ5dGVbMzJdW10KCgkvLyBjb250cmFjdHMvd2FyZWhvdXNlX3RyZWUuYWxnby50czo1CgkvLyBoZXgoJ2UzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUnKQoJYnl0ZSAweGUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUKCXNoYTI1NgoJY2FsbHN1YiBjYWxjUm9vdAoJYXBwX2dsb2JhbF9wdXQKCXJldHN1YgoKY3JlYXRlX05vT3A6CgltZXRob2QgImNyZWF0ZUFwcGxpY2F0aW9uKHVpbnQ2NCl2b2lkIgoJdHhuYSBBcHBsaWNhdGlvbkFyZ3MgMAoJbWF0Y2ggYWJpX3JvdXRlX2NyZWF0ZUFwcGxpY2F0aW9uCgllcnIKCmNhbGxfTm9PcDoKCW1ldGhvZCAidmVyaWZ5KGJ5dGVbMzJdLGJ5dGVbMzJdW10sdWludDY0KXZvaWQiCgltZXRob2QgInVwZGF0ZUxlYWYoYnl0ZVszMl0sYnl0ZVszMl1bXSx1aW50NjQpdm9pZCIKCXR4bmEgQXBwbGljYXRpb25BcmdzIDAKCW1hdGNoIGFiaV9yb3V0ZV92ZXJpZnkgYWJpX3JvdXRlX3VwZGF0ZUxlYWYKCWVycgoKY2FsbF9EZWxldGVBcHBsaWNhdGlvbjoKCW1ldGhvZCAiZGVsZXRlQXBwbGljYXRpb24oKXZvaWQiCgl0eG5hIEFwcGxpY2F0aW9uQXJncyAwCgltYXRjaCBhYmlfcm91dGVfZGVsZXRlQXBwbGljYXRpb24KCWVycg==",
     "clear": "I3ByYWdtYSB2ZXJzaW9uIDk="
   },
   "contract": {
@@ -107,7 +114,13 @@ export const APP_SPEC: AppSpec = {
       },
       {
         "name": "createApplication",
-        "args": [],
+        "args": [
+          {
+            "name": "size",
+            "type": "uint64",
+            "desc": ""
+          }
+        ],
         "desc": "",
         "returns": {
           "type": "void",
@@ -119,32 +132,17 @@ export const APP_SPEC: AppSpec = {
         "args": [
           {
             "name": "data",
-            "type": "byte[]",
+            "type": "byte[32]",
             "desc": ""
           },
           {
             "name": "path",
-            "type": "byte[33][3]",
-            "desc": ""
-          }
-        ],
-        "desc": "",
-        "returns": {
-          "type": "void",
-          "desc": ""
-        }
-      },
-      {
-        "name": "appendLeaf",
-        "args": [
-          {
-            "name": "data",
-            "type": "byte[]",
+            "type": "byte[32][]",
             "desc": ""
           },
           {
-            "name": "path",
-            "type": "byte[33][3]",
+            "name": "index",
+            "type": "uint64",
             "desc": ""
           }
         ],
@@ -158,18 +156,18 @@ export const APP_SPEC: AppSpec = {
         "name": "updateLeaf",
         "args": [
           {
-            "name": "oldData",
-            "type": "byte[]",
-            "desc": ""
-          },
-          {
-            "name": "newData",
-            "type": "byte[]",
+            "name": "data",
+            "type": "byte[32]",
             "desc": ""
           },
           {
             "name": "path",
-            "type": "byte[33][3]",
+            "type": "byte[32][]",
+            "desc": ""
+          },
+          {
+            "name": "index",
+            "type": "uint64",
             "desc": ""
           }
         ],
@@ -244,35 +242,29 @@ export type WarehouseTree = {
       argsTuple: []
       returns: void
     }>
-    & Record<'createApplication()void' | 'createApplication', {
+    & Record<'createApplication(uint64)void' | 'createApplication', {
       argsObj: {
+        size: bigint | number
       }
-      argsTuple: []
+      argsTuple: [size: bigint | number]
       returns: void
     }>
-    & Record<'verify(byte[],byte[33][3])void' | 'verify', {
+    & Record<'verify(byte[32],byte[32][],uint64)void' | 'verify', {
       argsObj: {
         data: Uint8Array
-        path: [Uint8Array, Uint8Array, Uint8Array]
+        path: Uint8Array[]
+        index: bigint | number
       }
-      argsTuple: [data: Uint8Array, path: [Uint8Array, Uint8Array, Uint8Array]]
+      argsTuple: [data: Uint8Array, path: Uint8Array[], index: bigint | number]
       returns: void
     }>
-    & Record<'appendLeaf(byte[],byte[33][3])void' | 'appendLeaf', {
+    & Record<'updateLeaf(byte[32],byte[32][],uint64)void' | 'updateLeaf', {
       argsObj: {
         data: Uint8Array
-        path: [Uint8Array, Uint8Array, Uint8Array]
+        path: Uint8Array[]
+        index: bigint | number
       }
-      argsTuple: [data: Uint8Array, path: [Uint8Array, Uint8Array, Uint8Array]]
-      returns: void
-    }>
-    & Record<'updateLeaf(byte[],byte[],byte[33][3])void' | 'updateLeaf', {
-      argsObj: {
-        oldData: Uint8Array
-        newData: Uint8Array
-        path: [Uint8Array, Uint8Array, Uint8Array]
-      }
-      argsTuple: [oldData: Uint8Array, newData: Uint8Array, path: [Uint8Array, Uint8Array, Uint8Array]]
+      argsTuple: [data: Uint8Array, path: Uint8Array[], index: bigint | number]
       returns: void
     }>
   /**
@@ -282,6 +274,9 @@ export type WarehouseTree = {
     global: {
       'root'?: BinaryState
       'size'?: IntegerState
+      'depth'?: IntegerState
+      'tempstore'?: BinaryState
+      'tempstore2'?: BinaryState
     }
   }
 }
@@ -317,7 +312,7 @@ export type WarehouseTreeCreateCalls = (typeof WarehouseTreeCallFactory)['create
  * Defines supported create methods for this smart contract
  */
 export type WarehouseTreeCreateCallParams =
-  | (TypedCallParams<'createApplication()void'> & (OnCompleteNoOp))
+  | (TypedCallParams<'createApplication(uint64)void'> & (OnCompleteNoOp))
 /**
  * A factory for available 'delete' calls
  */
@@ -353,16 +348,16 @@ export abstract class WarehouseTreeCallFactory {
   static get create() {
     return {
       /**
-       * Constructs a create call for the WarehouseTree smart contract using the createApplication()void ABI method
+       * Constructs a create call for the WarehouseTree smart contract using the createApplication(uint64)void ABI method
        *
        * @param args Any args for the contract call
        * @param params Any additional parameters for the call
        * @returns A TypedCallParams object for the call
        */
-      createApplication(args: MethodArgs<'createApplication()void'>, params: AppClientCallCoreParams & CoreAppCallArgs & AppClientCompilationParams & (OnCompleteNoOp) = {}) {
+      createApplication(args: MethodArgs<'createApplication(uint64)void'>, params: AppClientCallCoreParams & CoreAppCallArgs & AppClientCompilationParams & (OnCompleteNoOp) = {}) {
         return {
-          method: 'createApplication()void' as const,
-          methodArgs: Array.isArray(args) ? args : [],
+          method: 'createApplication(uint64)void' as const,
+          methodArgs: Array.isArray(args) ? args : [args.size],
           ...params,
         }
       },
@@ -392,44 +387,30 @@ export abstract class WarehouseTreeCallFactory {
   }
 
   /**
-   * Constructs a no op call for the verify(byte[],byte[33][3])void ABI method
+   * Constructs a no op call for the verify(byte[32],byte[32][],uint64)void ABI method
    *
    * @param args Any args for the contract call
    * @param params Any additional parameters for the call
    * @returns A TypedCallParams object for the call
    */
-  static verify(args: MethodArgs<'verify(byte[],byte[33][3])void'>, params: AppClientCallCoreParams & CoreAppCallArgs) {
+  static verify(args: MethodArgs<'verify(byte[32],byte[32][],uint64)void'>, params: AppClientCallCoreParams & CoreAppCallArgs) {
     return {
-      method: 'verify(byte[],byte[33][3])void' as const,
-      methodArgs: Array.isArray(args) ? args : [args.data, args.path],
+      method: 'verify(byte[32],byte[32][],uint64)void' as const,
+      methodArgs: Array.isArray(args) ? args : [args.data, args.path, args.index],
       ...params,
     }
   }
   /**
-   * Constructs a no op call for the appendLeaf(byte[],byte[33][3])void ABI method
+   * Constructs a no op call for the updateLeaf(byte[32],byte[32][],uint64)void ABI method
    *
    * @param args Any args for the contract call
    * @param params Any additional parameters for the call
    * @returns A TypedCallParams object for the call
    */
-  static appendLeaf(args: MethodArgs<'appendLeaf(byte[],byte[33][3])void'>, params: AppClientCallCoreParams & CoreAppCallArgs) {
+  static updateLeaf(args: MethodArgs<'updateLeaf(byte[32],byte[32][],uint64)void'>, params: AppClientCallCoreParams & CoreAppCallArgs) {
     return {
-      method: 'appendLeaf(byte[],byte[33][3])void' as const,
-      methodArgs: Array.isArray(args) ? args : [args.data, args.path],
-      ...params,
-    }
-  }
-  /**
-   * Constructs a no op call for the updateLeaf(byte[],byte[],byte[33][3])void ABI method
-   *
-   * @param args Any args for the contract call
-   * @param params Any additional parameters for the call
-   * @returns A TypedCallParams object for the call
-   */
-  static updateLeaf(args: MethodArgs<'updateLeaf(byte[],byte[],byte[33][3])void'>, params: AppClientCallCoreParams & CoreAppCallArgs) {
-    return {
-      method: 'updateLeaf(byte[],byte[],byte[33][3])void' as const,
-      methodArgs: Array.isArray(args) ? args : [args.oldData, args.newData, args.path],
+      method: 'updateLeaf(byte[32],byte[32][],uint64)void' as const,
+      methodArgs: Array.isArray(args) ? args : [args.data, args.path, args.index],
       ...params,
     }
   }
@@ -512,13 +493,13 @@ export class WarehouseTreeClient {
     const $this = this
     return {
       /**
-       * Creates a new instance of the WarehouseTree smart contract using the createApplication()void ABI method.
+       * Creates a new instance of the WarehouseTree smart contract using the createApplication(uint64)void ABI method.
        *
        * @param args The arguments for the smart contract call
        * @param params Any additional parameters for the call
        * @returns The create result
        */
-      async createApplication(args: MethodArgs<'createApplication()void'>, params: AppClientCallCoreParams & AppClientCompilationParams & (OnCompleteNoOp) = {}): Promise<AppCallTransactionResultOfType<MethodReturn<'createApplication()void'>>> {
+      async createApplication(args: MethodArgs<'createApplication(uint64)void'>, params: AppClientCallCoreParams & AppClientCompilationParams & (OnCompleteNoOp) = {}): Promise<AppCallTransactionResultOfType<MethodReturn<'createApplication(uint64)void'>>> {
         return $this.mapReturnValue(await $this.appClient.create(WarehouseTreeCallFactory.create.createApplication(args, params)))
       },
     }
@@ -554,35 +535,24 @@ export class WarehouseTreeClient {
   }
 
   /**
-   * Calls the verify(byte[],byte[33][3])void ABI method.
+   * Calls the verify(byte[32],byte[32][],uint64)void ABI method.
    *
    * @param args The arguments for the contract call
    * @param params Any additional parameters for the call
    * @returns The result of the call
    */
-  public verify(args: MethodArgs<'verify(byte[],byte[33][3])void'>, params: AppClientCallCoreParams & CoreAppCallArgs = {}) {
+  public verify(args: MethodArgs<'verify(byte[32],byte[32][],uint64)void'>, params: AppClientCallCoreParams & CoreAppCallArgs = {}) {
     return this.call(WarehouseTreeCallFactory.verify(args, params))
   }
 
   /**
-   * Calls the appendLeaf(byte[],byte[33][3])void ABI method.
+   * Calls the updateLeaf(byte[32],byte[32][],uint64)void ABI method.
    *
    * @param args The arguments for the contract call
    * @param params Any additional parameters for the call
    * @returns The result of the call
    */
-  public appendLeaf(args: MethodArgs<'appendLeaf(byte[],byte[33][3])void'>, params: AppClientCallCoreParams & CoreAppCallArgs = {}) {
-    return this.call(WarehouseTreeCallFactory.appendLeaf(args, params))
-  }
-
-  /**
-   * Calls the updateLeaf(byte[],byte[],byte[33][3])void ABI method.
-   *
-   * @param args The arguments for the contract call
-   * @param params Any additional parameters for the call
-   * @returns The result of the call
-   */
-  public updateLeaf(args: MethodArgs<'updateLeaf(byte[],byte[],byte[33][3])void'>, params: AppClientCallCoreParams & CoreAppCallArgs = {}) {
+  public updateLeaf(args: MethodArgs<'updateLeaf(byte[32],byte[32][],uint64)void'>, params: AppClientCallCoreParams & CoreAppCallArgs = {}) {
     return this.call(WarehouseTreeCallFactory.updateLeaf(args, params))
   }
 
@@ -642,6 +612,15 @@ export class WarehouseTreeClient {
       get size() {
         return WarehouseTreeClient.getIntegerState(state, 'size')
       },
+      get depth() {
+        return WarehouseTreeClient.getIntegerState(state, 'depth')
+      },
+      get tempstore() {
+        return WarehouseTreeClient.getBinaryState(state, 'tempstore')
+      },
+      get tempstore2() {
+        return WarehouseTreeClient.getBinaryState(state, 'tempstore2')
+      },
     }
   }
 
@@ -651,17 +630,12 @@ export class WarehouseTreeClient {
     let promiseChain:Promise<unknown> = Promise.resolve()
     const resultMappers: Array<undefined | ((x: any) => any)> = []
     return {
-      verify(args: MethodArgs<'verify(byte[],byte[33][3])void'>, params?: AppClientCallCoreParams & CoreAppCallArgs) {
+      verify(args: MethodArgs<'verify(byte[32],byte[32][],uint64)void'>, params?: AppClientCallCoreParams & CoreAppCallArgs) {
         promiseChain = promiseChain.then(() => client.verify(args, {...params, sendParams: {...params?.sendParams, skipSending: true, atc}}))
         resultMappers.push(undefined)
         return this
       },
-      appendLeaf(args: MethodArgs<'appendLeaf(byte[],byte[33][3])void'>, params?: AppClientCallCoreParams & CoreAppCallArgs) {
-        promiseChain = promiseChain.then(() => client.appendLeaf(args, {...params, sendParams: {...params?.sendParams, skipSending: true, atc}}))
-        resultMappers.push(undefined)
-        return this
-      },
-      updateLeaf(args: MethodArgs<'updateLeaf(byte[],byte[],byte[33][3])void'>, params?: AppClientCallCoreParams & CoreAppCallArgs) {
+      updateLeaf(args: MethodArgs<'updateLeaf(byte[32],byte[32][],uint64)void'>, params?: AppClientCallCoreParams & CoreAppCallArgs) {
         promiseChain = promiseChain.then(() => client.updateLeaf(args, {...params, sendParams: {...params?.sendParams, skipSending: true, atc}}))
         resultMappers.push(undefined)
         return this
@@ -702,31 +676,22 @@ export class WarehouseTreeClient {
 }
 export type WarehouseTreeComposer<TReturns extends [...any[]] = []> = {
   /**
-   * Calls the verify(byte[],byte[33][3])void ABI method.
+   * Calls the verify(byte[32],byte[32][],uint64)void ABI method.
    *
    * @param args The arguments for the contract call
    * @param params Any additional parameters for the call
    * @returns The typed transaction composer so you can fluently chain multiple calls or call execute to execute all queued up transactions
    */
-  verify(args: MethodArgs<'verify(byte[],byte[33][3])void'>, params?: AppClientCallCoreParams & CoreAppCallArgs): WarehouseTreeComposer<[...TReturns, MethodReturn<'verify(byte[],byte[33][3])void'>]>
+  verify(args: MethodArgs<'verify(byte[32],byte[32][],uint64)void'>, params?: AppClientCallCoreParams & CoreAppCallArgs): WarehouseTreeComposer<[...TReturns, MethodReturn<'verify(byte[32],byte[32][],uint64)void'>]>
 
   /**
-   * Calls the appendLeaf(byte[],byte[33][3])void ABI method.
+   * Calls the updateLeaf(byte[32],byte[32][],uint64)void ABI method.
    *
    * @param args The arguments for the contract call
    * @param params Any additional parameters for the call
    * @returns The typed transaction composer so you can fluently chain multiple calls or call execute to execute all queued up transactions
    */
-  appendLeaf(args: MethodArgs<'appendLeaf(byte[],byte[33][3])void'>, params?: AppClientCallCoreParams & CoreAppCallArgs): WarehouseTreeComposer<[...TReturns, MethodReturn<'appendLeaf(byte[],byte[33][3])void'>]>
-
-  /**
-   * Calls the updateLeaf(byte[],byte[],byte[33][3])void ABI method.
-   *
-   * @param args The arguments for the contract call
-   * @param params Any additional parameters for the call
-   * @returns The typed transaction composer so you can fluently chain multiple calls or call execute to execute all queued up transactions
-   */
-  updateLeaf(args: MethodArgs<'updateLeaf(byte[],byte[],byte[33][3])void'>, params?: AppClientCallCoreParams & CoreAppCallArgs): WarehouseTreeComposer<[...TReturns, MethodReturn<'updateLeaf(byte[],byte[],byte[33][3])void'>]>
+  updateLeaf(args: MethodArgs<'updateLeaf(byte[32],byte[32][],uint64)void'>, params?: AppClientCallCoreParams & CoreAppCallArgs): WarehouseTreeComposer<[...TReturns, MethodReturn<'updateLeaf(byte[32],byte[32][],uint64)void'>]>
 
   /**
    * Gets available delete methods

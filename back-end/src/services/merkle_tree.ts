@@ -1,18 +1,23 @@
+import { createHash } from 'crypto';
+import { describe, test, expect, beforeAll, beforeEach } from '@jest/globals';
+import { algorandFixture } from '@algorandfoundation/algokit-utils/testing';
+import { randomBytes } from 'crypto';
 import { WarehouseTreeClient } from './WarehouseTreeClient';
 import algosdk from 'algosdk';
-const { createHash, randomBytes } = require('crypto');
 import dotenv from 'dotenv';
 dotenv.config();
 
-// function timer<T extends (...args: any[]) => any>(func: T): T {
-//     return function(...args: Parameters<T>): ReturnType<T> {
-//         const start_time = performance.now();
-//         const result = func(...args);
-//         const end_time = performance.now();
-//         console.log(`${func.name} ran in: ${end_time - start_time} ms`);
-//         return result;
-//     } as T;
-// }
+const fixture = algorandFixture();
+
+function timer<T extends (...args: any[]) => any>(func: T): T {
+  return function (...args: Parameters<T>): ReturnType<T> {
+    const start_time = performance.now();
+    const result = func(...args);
+    const end_time = performance.now();
+    console.log(`${func.name} ran in: ${end_time - start_time} ms`);
+    return result;
+  } as T;
+}
 
 function oppositeSubtreeAtLevel(leaf1: number, leaf2: number, treeSize: number): boolean[] {
   let results: boolean[] = [];
@@ -36,8 +41,14 @@ function oppositeSubtreeAtLevel(leaf1: number, leaf2: number, treeSize: number):
   return results;
 }
 
-function sha256(data: string): string {
-  return createHash('sha256').update(data).digest('hex');
+function sha256(left: string, right: string): string {
+  if (right !== '') {
+    return createHash('sha256')
+      .update(Buffer.from(left + right, 'hex'))
+      .digest('hex');
+  } else {
+    return createHash('sha256').update(Buffer.from(left, 'hex')).digest('hex');
+  }
 }
 
 export function getMerklePath(index: number, merkleTree: any[][]): any[] {
@@ -94,14 +105,10 @@ export function genMerkleTree(leafs: string[]): [string, string[][]] {
       let hash: string;
       if (i === leafs.length - 1) {
         // Find the hash of an uneven pair
-        hash = createHash('sha256')
-          .update(leafs[i] + leafs[i])
-          .digest('hex');
+        hash = sha256(leafs[i], leafs[i]);
       } else {
         // Find the hash of both siblings
-        hash = createHash('sha256')
-          .update(leafs[i] + leafs[i + 1])
-          .digest('hex');
+        hash = sha256(leafs[i], leafs[i + 1]);
       }
       level.push(hash);
       branch.push(hash);
@@ -109,8 +116,6 @@ export function genMerkleTree(leafs: string[]): [string, string[][]] {
     MT.push(level);
     leafs = branch;
   }
-  console.log('MT', MT);
-
   return [leafs[0], MT.slice(0, -1)]; // Remove root from MT
 }
 
@@ -121,9 +126,9 @@ function validatePath(path: string[], leaf: string, index: number): string {
       index = Math.floor(index / 2);
     }
     if (index % 2 === 0) {
-      hash = sha256(hash + sibling);
+      hash = sha256(hash, sibling);
     } else {
-      hash = sha256(sibling + hash);
+      hash = sha256(sibling, hash);
     }
   });
   return hash;
@@ -147,9 +152,9 @@ function updateTree(
     newPath.push([hash, sibling, slot]);
 
     if (index % 2 === 0) {
-      hash = sha256(hash + sibling);
+      hash = sha256(hash, sibling);
     } else {
-      hash = sha256(sibling + hash);
+      hash = sha256(sibling, hash);
     }
 
     if (i < path.length - 1) {
@@ -223,7 +228,7 @@ function updatePathBoxmap(
         if (i + 1 < path.length && !subtree[i + 1]) {
           path[i] = sib[i][1]; // Next is also false so use sibling
         } else {
-          path[i] = sib[i][0]; // Next isn't in the same subtree so use self
+          path[i] = sib[i][0]; // Next isnt in the same subtree so use self
         }
         lvls += 1;
       }
@@ -241,7 +246,8 @@ function updatePathBoxmap(
 }
 
 export function createMT(treeSize: number): [string[][], string, string[], number] {
-  const originalData: string[] = Array.from({ length: treeSize }, (_, i) => 'tx' + i);
+  const originalData: string[] = Array.from({ length: treeSize }, (_, i) => sha256('', '')); //(i % 2 === 0 ? 'aa' : 'bb') +
+  console.log('sha256', sha256('', ''));
   console.log('tree size', treeSize, treeSize % 2 === 1 ? 'uneven' : '');
 
   // Create full Merkle Tree
@@ -268,13 +274,10 @@ export function updateMT(
   let newRoot: string = merkleRoot;
 
   for (let i = 0; i < treeSize; i++) {
-    if (i != 0) break;
     let newLeaf = `new_tx${i}`;
     // Update a leaf
     let [updatedRoot, sib] = updateMerkleTree(newRoot, paths[i], data[i], newLeaf, i, treeSize);
     newRoot = updatedRoot;
-
-    console.log('sib', sib);
 
     // Update each path to incorporate the new leaf data
     for (let j = 0; j < paths.length; j++) {
@@ -357,14 +360,3 @@ export const getRoot = async (appId?: number) => {
     };
   }
 };
-
-const treeSize = 100;
-// const [paths, merkleRoot, originalData, _] = createMT(treeSize);
-// console.log({
-//   paths,
-//   merkleRoot,
-//   originalData,
-// });
-// updateMT(paths, merkleRoot, originalData, treeSize);
-
-// delayedUpdate(1_000_0, treeSize, paths, originalData)
