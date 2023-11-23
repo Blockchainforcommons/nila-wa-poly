@@ -54,6 +54,8 @@ mongoose
       // await WareHouseContract.verifyData('0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', path, 0);
       // await WareHouseContract.addLeaf('0x5014830c62b429d1354d6a650e99d3c26f20b585b3e3469d0959acf85a66d074', path, 0);
       const depth = await WareHouseContract.getDepth();
+      const root = await WareHouseContract.getRoot();
+      console.log(`root is ${root}`);
       console.log(`Depth is ${depth}`);
       console.log(`[server]: Server is running at http://localhost:${port}`);
     });

@@ -112,9 +112,9 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const products = await Product.find({ isDeleted: false }).sort({ createdAt: -1 });
     if (products?.length) {
+      const root = await WareHouseContract.getRoot();
       for (const p of products) {
-        const rootRes = await getRoot(p.appId || 474866790);
-        if (rootRes.success) p.isVerified = rootRes.root === p.root;
+        p.isVerified = root === `0x${p.root}`;
       }
     }
 
@@ -287,7 +287,7 @@ const createProduct = async (req: any, res: Response) => {
     };
 
     // validating body
-    // await productValidator.validate(newProduct);
+    await productValidator.validate(newProduct);
 
     // empty hash
     const emptyHash = createHash('');
@@ -307,21 +307,23 @@ const createProduct = async (req: any, res: Response) => {
 
     if (products.length) {
       const productsHashes = products.map((p: any) => p.hash);
+      const productWithEmptyHashes = [...productsHashes];
+
       // filling with empty hashes
-      for (let i = 0; i < TREE_SIZE - productsHashes.length; i++) productsHashes.push(emptyHash);
-      const targetIndex = productsHashes.findIndex((p: string) => p === emptyHash);
-      const [merkleRoot, path] = genMerkleTree(productsHashes as string[]);
+      for (let i = 0; i < TREE_SIZE - productsHashes.length; i++) productWithEmptyHashes.push(emptyHash);
+      const targetIndex = productWithEmptyHashes.findIndex((p: string) => p === emptyHash);
+      const [merkleRoot, path] = genMerkleTree(productWithEmptyHashes as string[]);
       const targetPath = getMerklePath(targetIndex, path);
       const prefixTargetPath = targetPath.map(p => `0x${p}`);
+
       // ----------Perform contract part here ---------------------
       const result = await WareHouseContract.addLeaf(`0x${productHash}`, prefixTargetPath, targetIndex);
-      console.log('result exist', result);
-
       if (!result) return res.status(200).json({ success: false, message: 'Creating product has failed!' });
+
       // -------------after contract-----------------
-      productsHashes[targetIndex] = productHash;
+      productWithEmptyHashes[targetIndex] = productHash;
       // Create full Merkle Tree
-      const [newMerkleRoot, newPath] = genMerkleTree(productsHashes as string[]);
+      const [newMerkleRoot, newPath] = genMerkleTree(productWithEmptyHashes as string[]);
 
       // Create paths based on full Merkle Tree
       const paths: string[][] = [];
@@ -342,18 +344,18 @@ const createProduct = async (req: any, res: Response) => {
     } else {
       const [paths, merkleRoot, originalData] = createMT(TREE_SIZE);
       const prefixTargetPath = paths[0].map(p => `0x${p}`);
-      console.log('p', `0x${productHash}`);
-      console.log('prefixTargetPath', prefixTargetPath);
 
       // -----------------performing contract part here-----------------
       const result = await WareHouseContract.addLeaf(`0x${productHash}`, prefixTargetPath, 0);
-      console.log('result 0', result);
       if (!result) return res.status(200).json({ success: false, message: 'Creating product has failed!' });
+
       // -------------after contract-----------------
       originalData[0] = productHash;
       // Create full Merkle Tree with new product
       const [newMerkleRoot, path] = genMerkleTree(originalData as string[]);
       const p = getMerklePath(0, path);
+      // console.log({ merkleRoot, newMerkleRoot, p, prefixTargetPath, originalData, productHash });
+
       newProduct.path = p;
       newProduct.root = newMerkleRoot;
     }
