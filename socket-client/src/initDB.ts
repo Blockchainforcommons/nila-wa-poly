@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 export const initDB = () => {
   mongoose
-    .connect(process.env.MONGODB_URI || 'mongodb://mongo_db:27017', {
+    .connect(process.env.MONGODB_URI || 'mongodb://mongo:27017', {
       dbName: process.env.DB_NAME || 'sample-db',
       // user: process.env.DB_USER,
       // pass: process.env.DB_PASS,

@@ -4,6 +4,8 @@ services:
     container_name: db_container
     image: mongo:latest
     restart: always
+    ports:
+      - 27017:27017
     volumes:
       - mongo_data:/data/db
   node:
@@ -15,13 +17,16 @@ services:
   socket-client:
     depends_on:
       - mongo
+      - node
     build: ./socket-client
     ports:
       - "4000:3000"
     environment:
       PORT: 3000
-      MONGODB_URI: mongodb://mongo_db:27017
+      MONGODB_URI: mongodb://mongo:27017
       DB_NAME: sample-db
+    external_links:
+      - node
   ui:
     depends_on:
       - socket-client
