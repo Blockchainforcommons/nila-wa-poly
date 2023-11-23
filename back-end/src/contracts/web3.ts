@@ -75,11 +75,30 @@ export namespace WareHouseContract {
     }
   };
 
-  export const addLeaf = async (newItem: Bytes, path: Array<Bytes>, index: Uint256) => {
+  export const addLeaf = async (newItem: any, path: any, index: any) => {
     try {
       const address = await web3.eth.getAccounts();
+      const pathParam = path.map((item: any) => web3.eth.abi.encodeParameter('bytes32', item));
+      console.log({ newItem, pathParam, index });
+      const gas = await contract.methods
+        .addLeaf(web3.eth.abi.encodeParameter('bytes32', newItem), pathParam, index)
+        .estimateGas({ from: address[0] });
 
-      const result = await contract.methods.addLeaf(newItem, path, index).send({ from: address[0] });
+      const result = await contract.methods
+        .addLeaf(web3.eth.abi.encodeParameter('bytes32', newItem), pathParam, index)
+        .send({ from: address[0], gas: gas })
+        .on('transactionHash', function (hash: any) {
+          console.log('hash:', hash);
+        })
+        .on('confirmation', function (confirmationNumber: any, receipt: any) {
+          console.log('confirmationNumber:', confirmationNumber);
+          console.log('receipt:', receipt);
+        })
+        .on('receipt', function (receipt: any) {
+          console.log('receipt:', receipt);
+        })
+        .on('error', console.error); // If a out of gas error, the second parameter is the receipt.
+
       return result;
     } catch (error) {
       console.error(error);

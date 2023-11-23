@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  node:
+    build: ./back-end
+    ports:
+      - "1337:1337"
+    env_file:
+      - ./back-end/.env
+  ui:
+    depends_on:
+      - node
+    build: ./front-end
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./front-end/.env
+    
