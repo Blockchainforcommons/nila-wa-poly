@@ -52,7 +52,7 @@ mongoose
         '0x5310a330e8f970388503c73349d80b45cd764db615f1bced2801dcd4524a2ff4',
       ];
       // await WareHouseContract.verifyData('0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', path, 0);
-      await WareHouseContract.addLeaf('0x5014830c62b429d1354d6a650e99d3c26f20b585b3e3469d0959acf85a66d074', path, 0);
+      // await WareHouseContract.addLeaf('0x5014830c62b429d1354d6a650e99d3c26f20b585b3e3469d0959acf85a66d074', path, 0);
       const depth = await WareHouseContract.getDepth();
       console.log(`Depth is ${depth}`);
       console.log(`[server]: Server is running at http://localhost:${port}`);
