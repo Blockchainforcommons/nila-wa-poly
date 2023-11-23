@@ -24,7 +24,7 @@ services:
       DB_NAME: sample-db
   ui:
     depends_on:
-      - merchant-api
+      - socket-client
     build: ./front-end
     ports:
       - "3000:3000"

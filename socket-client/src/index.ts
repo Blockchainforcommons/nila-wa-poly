@@ -7,7 +7,7 @@ import io from 'socket.io-client';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 8089;
+const port = process.env.PORT || 3000;
 const serverUrl = process.env.SERVER_URL || 'http://localhost:8088';
 
 const socket = io(serverUrl);
