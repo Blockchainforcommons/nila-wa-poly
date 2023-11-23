@@ -1,12 +1,12 @@
-import Web3, { Bytes, Uint256 } from 'web3';
-// import { Promise } from 'bluebird';
+import Web3 from 'web3';
+import { Promise as BluePromise } from 'bluebird';
 import HDWalletProvider from '@truffle/hdwallet-provider';
 import WareHouseAbi from './build/warehouseTree.abi.json';
 import dotenv from 'dotenv';
 dotenv.config();
 const mnemonic: any = process.env.EXECUTOR_PRIVATE_KEY;
 const rpcUrl: any = process.env.RPC_URL;
-const ABI = WareHouseAbi.abi;
+const ABI: any = WareHouseAbi.abi;
 
 const provider: any = new HDWalletProvider(mnemonic, rpcUrl);
 const web3 = new Web3(provider);
@@ -17,7 +17,7 @@ export namespace WareHouseContract {
   export const setup = async () => {
     try {
       contract = new web3.eth.Contract(ABI, process.env.WAREHOUSE_ADDRESS);
-      //   Promise.promisifyAll(contract, { suffix: 'Promise' });
+      BluePromise.promisifyAll(contract, { suffix: 'Promise' });
       isReady = true;
       return isReady;
     } catch (error) {
@@ -65,9 +65,10 @@ export namespace WareHouseContract {
     }
   };
 
-  export const verifyData = async (data: Bytes, path: Array<Bytes>, index: Uint256) => {
+  export const verifyData = async (data: string, path: Array<string>, index: Number) => {
     try {
-      const result = await contract.methods.verifyData(data, path, index).call();
+      const result = await contract.methods.verify(data, path, index).call();
+
       return result;
     } catch (error) {
       console.error(error);
@@ -75,7 +76,7 @@ export namespace WareHouseContract {
     }
   };
 
-  export const addLeaf = async (newItem: Bytes, path: Array<Bytes>, index: Number) => {
+  export const addLeaf = async (newItem: string, path: Array<string>, index: Number) => {
     try {
       console.log({ newItem, path });
 
@@ -99,7 +100,9 @@ export namespace WareHouseContract {
         .on('receipt', function (receipt: any) {
           console.log('receipt:', receipt);
         })
-        .on('error', console.error); // If a out of gas error, the second parameter is the receipt.
+        .on('error', function (error: any) {
+          console.error('Error', error);
+        }); // If a out of gas error, the second parameter is the receipt.
 
       return result;
     } catch (error) {
@@ -108,7 +111,7 @@ export namespace WareHouseContract {
     }
   };
 
-  export const updateLeaf = async (data: Bytes, path: Array<Bytes>, index: Uint256) => {
+  export const updateLeaf = async (data: string, path: Array<string>, index: Number) => {
     try {
       const address = await web3.eth.getAccounts();
 
