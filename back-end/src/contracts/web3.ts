@@ -75,8 +75,10 @@ export namespace WareHouseContract {
     }
   };
 
-  export const addLeaf = async (newItem: any, path: any, index: any) => {
+  export const addLeaf = async (newItem: Bytes, path: Array<Bytes>, index: Number) => {
     try {
+      console.log({ newItem, path });
+
       const address = await web3.eth.getAccounts();
       const pathParam = path.map((item: any) => web3.eth.abi.encodeParameter('bytes32', item));
       console.log({ newItem, pathParam, index });
@@ -101,7 +103,7 @@ export namespace WareHouseContract {
 
       return result;
     } catch (error) {
-      console.error(error);
+      console.error('Adding leaf has failed!', error);
       return false;
     }
   };
