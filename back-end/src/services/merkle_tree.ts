@@ -1,13 +1,7 @@
 import { createHash } from 'crypto';
-import { describe, test, expect, beforeAll, beforeEach } from '@jest/globals';
-import { algorandFixture } from '@algorandfoundation/algokit-utils/testing';
 import { randomBytes } from 'crypto';
-import { WarehouseTreeClient } from './WarehouseTreeClient';
-import algosdk from 'algosdk';
 import dotenv from 'dotenv';
 dotenv.config();
-
-const fixture = algorandFixture();
 
 function timer<T extends (...args: any[]) => any>(func: T): T {
   return function (...args: Parameters<T>): ReturnType<T> {
@@ -323,40 +317,3 @@ function delayedUpdate(updates: number, size: number, paths: string[][], data: s
 
   return paths;
 }
-
-// get root
-export const getRoot = async (appId?: number) => {
-  try {
-    if (!appId) return { success: false, message: 'Provide valid app id' };
-    console.log('process.env.ALGOD_PORT', process.env.ALGOD_PORT);
-
-    const algodClient = new algosdk.Algodv2(
-      process.env.ALGOD_TOKEN || '',
-      process.env.ALGOD_SERVER || '',
-      process.env.ALGOD_PORT,
-    );
-
-    const merkleTree = new WarehouseTreeClient(
-      {
-        resolveBy: 'id',
-        id: appId,
-      },
-      algodClient,
-    );
-
-    const state: any = await merkleTree.appClient.getGlobalState();
-    console.log('state', state);
-
-    const root = Buffer.from(state.root.valueRaw).toString('hex');
-    console.log('root', root);
-
-    return { success: true, root };
-  } catch (error) {
-    console.error('Fetching root from algo has failed!', (error as Error).message);
-    return {
-      success: false,
-      message: 'Fetching root from algo has failed!',
-      error: error as Error,
-    };
-  }
-};

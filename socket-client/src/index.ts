@@ -4,6 +4,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import io from 'socket.io-client';
+import Product from './models/Product';
 dotenv.config();
 
 const app = express();
@@ -30,9 +31,27 @@ app.get('*', (req: Request, res: Response) => {
   res.send('Express + typescript for nila socket server');
 });
 
+export const syncProducts = async () => {
+  try {
+    const allProducts: any = await fetch('http://node:1337/api/products').then(res => res.json());
+    console.log('allProducts', allProducts);
+    for (let product of allProducts) {
+      const productExists = await Product.findOne({
+        hash: product.hash,
+      });
+      if (!productExists) {
+        const newProduct = new Product(product);
+        await newProduct.save();
+      }
+    }
+  } catch (error) {
+    console.log('error', error);
+  }
+};
+
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
-
+  syncProducts();
   socket.on('connect', () => {
     console.log('Connected to server');
 
