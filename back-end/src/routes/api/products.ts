@@ -5,15 +5,7 @@ import Product from '../../models/Product';
 import { productValidator } from '../../services/validator';
 import { socketInstance } from '../../services/socket';
 import multer from 'multer';
-import {
-  genMerkleTree,
-  getMerklePathV2,
-  updateMerkleTree,
-  updatePath,
-  getRoot,
-  createMT,
-  getMerklePath,
-} from '../../services/merkle_tree';
+import { genMerkleTree, updateMerkleTree, updatePath, createMT, getMerklePath } from '../../services/merkle_tree';
 import { TREE_SIZE } from '../../utils/constants';
 import { WareHouseContract } from '../../contracts/web3';
 
@@ -354,7 +346,7 @@ const createProduct = async (req: any, res: Response) => {
       // Create full Merkle Tree with new product
       const [newMerkleRoot, path] = genMerkleTree(originalData as string[]);
       const p = getMerklePath(0, path);
-      // console.log({ merkleRoot, newMerkleRoot, p, prefixTargetPath, originalData, productHash });
+      // console.log({ merkleRoot, newMerkleRoot, p, prefixTargetPath, originalData });
 
       newProduct.path = p;
       newProduct.root = newMerkleRoot;

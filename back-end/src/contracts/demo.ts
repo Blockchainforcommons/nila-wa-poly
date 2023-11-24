@@ -1,10 +1,4 @@
-import { createHash } from 'crypto';
-import { describe, test, expect, beforeAll, beforeEach } from '@jest/globals';
-import { algorandFixture } from '@algorandfoundation/algokit-utils/testing';
-import { randomBytes } from 'crypto';
-import { WarehouseTreeClient } from './WarehouseTreeClient';
-
-const fixture = algorandFixture();
+import { createHash, randomBytes } from 'crypto';
 
 function timer<T extends (...args: any[]) => any>(func: T): T {
   return function (...args: Parameters<T>): ReturnType<T> {
@@ -295,61 +289,3 @@ function delayedUpdate(updates: number, size: number, paths: string[][], data: s
 }
 // set tree size
 export const treeSize = 5;
-
-const createApplication = async () => {
-  await fixture.beforeEach();
-  const { algod, testAccount } = fixture.context;
-  // initiate the contract
-  let appClient: WarehouseTreeClient;
-  appClient = new WarehouseTreeClient(
-    {
-      sender: testAccount,
-      resolveBy: 'id',
-      id: 0,
-    },
-    algod,
-  );
-  await appClient.create.createApplication({ size: treeSize });
-
-  // create tree of size treeSize with empty slots
-  const [paths, merkleRoot, originalData, _] = createMT(treeSize);
-
-  console.log('origin data', originalData);
-  const glob = await appClient.getGlobalState();
-  console.log('globalState', glob.root?.asString, glob.depth?.asNumber(), glob.size?.asNumber());
-
-  // validate a random path on-chain
-  const leaf = Math.floor(Math.random() * treeSize);
-  // add prefix 170 (aa) or 187 (bb) if right/left.
-  // update to hex bytes
-  let data = Buffer.from(originalData[leaf], 'hex');
-  console.log('prefixed', leaf, originalData[leaf]);
-  // add prefix based on uneven/even
-  console.log('old data', data, data.length);
-
-  let path: Uint8Array[] = paths[leaf].map(p => Buffer.from(p, 'hex'));
-  //let depth_of_tree = Math.log2(treeSize)
-  //console.log('depth_of_tree', depth_of_tree)
-  console.log('path to input', path);
-
-  const validate = await appClient.updateLeaf({
-    data: data,
-    path: path,
-    index: leaf,
-  });
-  console.log('validate', validate);
-
-  const glob_after = await appClient.getGlobalState();
-  console.log(
-    'globalState',
-    glob_after.root?.asByteArray,
-    glob_after.tempstore?.asByteArray,
-    glob_after.tempstore2?.asByteArray(),
-  );
-
-  //console.log(paths, merkleRoot,originalData)
-  updateMT(paths, merkleRoot, originalData, treeSize);
-};
-// create application
-createApplication();
-//delayedUpdate(1_000_0, treeSize, paths, originalData)
